@@ -1,0 +1,8 @@
+# Hugging Face Spaces Configuration
+# Using Docker runtime
+title: Resume Job Matcher
+emoji: 🚀
+colorFrom: indigo
+colorTo: purple
+sdk: docker
+app_port: 7860
