@@ -257,5 +257,4 @@ function JobDetailCard({ job, onClose }: JobDetailCardProps) {
   );
 }
 
-export type { JobDetail };
 export default JobDetailCard;
