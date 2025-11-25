@@ -4,6 +4,7 @@ import LandingPage from "./pages/LandingPage";
 import JobFeedPage from "./pages/JobFeedPage";
 import SearchPage from "./pages/SearchPage";
 import ResultPage from "./pages/ResultPage";
+import JobDetailPage from "./pages/JobDetailPage";
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
         <Route path="/feed" element={<JobFeedPage />} />
         <Route path="/search" element={<SearchPage />} />
         <Route path="/result" element={<ResultPage />} />
+        <Route path="/job" element={<JobDetailPage />} />
       </Routes>
     </Router>
   );
