@@ -64,3 +64,12 @@ chmod +x setup_local.sh   # 仅首次需要
 ---
 
 如需更多背景与 API 约定，请参阅 `resume-recommender-docs/` 与 `resume-recommender-docs-v2/` 中的规范文档。
+
+---
+
+## 成员 A（简历解析 & 技能/期望提取）指引
+- 代码产物：`backend/nlp_model/resume_parser.py`（含 `load_resume`、`parse_sections`、`extract_resume_skills`、`infer_target_roles`）与共享技能词典 `backend/nlp_model/skills_dict.py`。
+- 解析职责：支持 docx + PDF 的文本抽取（`load_resume`），对 Skills/Experience/Education/Projects/Summary 等进行简易分段（`parse_sections`）。
+- 词典维护：与成员 C 对齐统一的 `SKILL_DICT`/别名，供简历与 JD 复用，外部可通过 `normalize_skill`、`get_all_skills` 等接口。
+- 目标输出：基于分段文本提取技能（`extract_resume_skills`）并推断目标职位偏好（`infer_target_roles`，支持用户显式输入）。
+- Demo/测试：建议补充一个示例 notebook/脚本展示“样例简历 → skills & target_roles”并添加最小单元测试，方便集成验证。
