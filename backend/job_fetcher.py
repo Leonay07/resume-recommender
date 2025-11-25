@@ -15,6 +15,8 @@ load_dotenv()
 
 RAPID_API_KEY = os.getenv("RAPID_API_KEY")
 RAPID_API_HOST = os.getenv("RAPID_API_HOST")
+MIN_RESULTS = 15
+MAX_PAGES = 5
 
 
 def fetch_jobs_from_api(title, location):
@@ -29,41 +31,38 @@ def fetch_jobs_from_api(title, location):
         "X-RapidAPI-Host": RAPID_API_HOST
     }
 
+    effective_location = (location or "").strip()
+
     def get_jobs(page=1):
+        query = f"{title} in {effective_location}" if effective_location else title
         params = {
-            "query": f"{title} in {location}",
-            "num_pages": page,
+            "query": query,
+            "page": page,
+            "num_pages": 1,
             "date_posted": "month",
             "employment_types": "FULLTIME",
         }
         response = requests.get(url, headers=headers, params=params)
         return response.json().get("data", [])
 
-    # First fetch
-    data = get_jobs(page=1)
-
     job_list = []
-    for j in data:
-        job_title = (j.get("job_title") or "").lower()
-        job_loc = (j.get("job_city") or j.get("job_state") or "").lower()
+    seen_keys = set()
 
-        if title.lower() in job_title and location.lower() in job_loc:
-            job_list.append({
-                "title": j.get("job_title"),
-                "company": j.get("employer_name"),
-                "location": j.get("job_city") or j.get("job_state"),
-                "description": j.get("job_description"),
-                "apply_link": j.get("job_apply_link"),
-            })
+    page = 1
+    while page <= MAX_PAGES:
+        data = get_jobs(page=page)
+        if not data:
+            break
 
-    # If fewer than 10 jobs, fetch more
-    if len(job_list) < 10:
-        extra_data = get_jobs(page=2)
-        for j in extra_data:
+        for j in data:
             job_title = (j.get("job_title") or "").lower()
             job_loc = (j.get("job_city") or j.get("job_state") or "").lower()
+            loc_match = True if not effective_location else effective_location.lower() in job_loc
 
-            if title.lower() in job_title and location.lower() in job_loc:
+            if title.lower() in job_title and loc_match:
+                key = (job_title, j.get("employer_name"))
+                if key in seen_keys:
+                    continue
                 job_list.append({
                     "title": j.get("job_title"),
                     "company": j.get("employer_name"),
@@ -71,6 +70,12 @@ def fetch_jobs_from_api(title, location):
                     "description": j.get("job_description"),
                     "apply_link": j.get("job_apply_link"),
                 })
+                seen_keys.add(key)
+
+        if len(job_list) >= MIN_RESULTS:
+            break
+
+        page += 1
 
     return job_list
 
@@ -117,4 +122,3 @@ def fetch_random_jobs():
 
     # Randomly sample 10 jobs (or fewer if not enough)
     return random.sample(job_list, min(10, len(job_list)))
-

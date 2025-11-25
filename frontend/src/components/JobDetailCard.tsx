@@ -1,6 +1,6 @@
 // frontend/src/components/JobDetailCard.tsx
 
-type JobDetail = {
+export type JobDetail = {
   title: string;
   company: string;
   location: string;

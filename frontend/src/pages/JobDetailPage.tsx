@@ -1,7 +1,7 @@
 // frontend/src/pages/JobDetailPage.tsx
 
 import { useLocation, useNavigate } from "react-router-dom";
-import JobDetailCard, { JobDetail } from "../components/JobDetailCard";
+import JobDetailCard, { type JobDetail } from "../components/JobDetailCard";
 
 function JobDetailPage() {
   const navigate = useNavigate();

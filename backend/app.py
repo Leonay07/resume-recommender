@@ -67,6 +67,7 @@ async def match_resume(
 
     # Step 1: fetch job list
     job_list = fetch_jobs_from_api(title, location)
+    print(f"[DEBUG] fetched {len(job_list)} jobs from API for title={title}, location={location}")
 
     # Step 2: read resume bytes (not parsing PDF here)
     resume_bytes = await file.read()
@@ -74,6 +75,12 @@ async def match_resume(
 
     # Step 3: call stub matching model
     results = recommend_jobs(resume_text, job_list, title, location, experience)
+
+    # Debug log
+    print(
+        f"[DEBUG] /match payload — file: {file.filename}, title: {title}, "
+        f"location: {location}, experience: {experience}, results: {len(results)}"
+    )
 
     # Step 4: save entire result list
     with open(CACHE_PATH, "w") as f:

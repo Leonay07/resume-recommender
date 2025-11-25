@@ -10,7 +10,7 @@ function SearchPage() {
 
   const [title, setTitle] = useState("");
   const [location, setLocation] = useState("");
-  const [experience, setExperience] = useState("0");
+  const [experience, setExperience] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -25,8 +25,8 @@ function SearchPage() {
       alert("Please upload your resume.");
       return;
     }
-    if (!title || !location) {
-      alert("Please enter job title and location.");
+    if (!title) {
+      alert("Please enter job title.");
       return;
     }
 
@@ -138,13 +138,13 @@ function SearchPage() {
               onChange={(e) => setTitle(e.target.value)}
             />
 
-            <label style={{ fontWeight: 600 }}>Preferred Location</label>
+            <label style={{ fontWeight: 600 }}>Preferred Location (optional)</label>
             <select
               style={{ ...inputStyle, appearance: "none", cursor: "pointer" }}
               value={location}
               onChange={(e) => setLocation(e.target.value)}
             >
-              <option value="">Select a state</option>
+              <option value="">Any location</option>
               {US_STATES.map((state) => (
                 <option key={state.code} value={state.name}>
                   {state.name}
@@ -153,12 +153,13 @@ function SearchPage() {
               <option value="Remote">Remote</option>
             </select>
 
-            <label style={{ fontWeight: 600 }}>Experience Level</label>
+            <label style={{ fontWeight: 600 }}>Experience Level (optional)</label>
             <select
               style={{ ...inputStyle, appearance: "none", cursor: "pointer" }}
               value={experience}
               onChange={(e) => setExperience(e.target.value)}
             >
+              <option value="">No preference</option>
               <option value="0">0 years</option>
               <option value="1-3">1 - 3 years</option>
               <option value="3-5">3 - 5 years</option>

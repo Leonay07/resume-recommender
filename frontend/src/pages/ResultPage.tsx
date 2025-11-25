@@ -117,18 +117,59 @@ function ResultPage() {
           boxShadow: "0 30px 70px rgba(7, 12, 28, 0.45)"
         }}
       >
-        <p
+        <div
           style={{
-            textTransform: "uppercase",
-            letterSpacing: "0.2em",
-            fontSize: "13px",
-            color: "rgba(226, 232, 240, 0.8)",
-            margin: "0 0 12px"
+            display: "flex",
+            flexWrap: "wrap",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: "12px",
+            marginBottom: "24px"
           }}
         >
-          Match Results
-        </p>
-        <h1 style={{ margin: "0 0 32px" }}>Here are your top recommendations</h1>
+          <div>
+            <p
+              style={{
+                textTransform: "uppercase",
+                letterSpacing: "0.2em",
+                fontSize: "13px",
+                color: "rgba(226, 232, 240, 0.8)",
+                margin: "0 0 12px"
+              }}
+            >
+              Match Results
+            </p>
+            <h1 style={{ margin: 0 }}>Here are your top recommendations</h1>
+          </div>
+          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+            <button
+              onClick={() => navigate("/search")}
+              style={{
+                padding: "10px 20px",
+                borderRadius: "999px",
+                border: "1px solid rgba(255,255,255,0.3)",
+                backgroundColor: "transparent",
+                color: "#f8fafc",
+                cursor: "pointer"
+              }}
+            >
+              New Search
+            </button>
+            <button
+              onClick={() => navigate("/feed")}
+              style={{
+                padding: "10px 20px",
+                borderRadius: "999px",
+                border: "1px solid rgba(255,255,255,0.3)",
+                backgroundColor: "transparent",
+                color: "#f8fafc",
+                cursor: "pointer"
+              }}
+            >
+              Back to Feed
+            </button>
+          </div>
+        </div>
 
         {jobs.length === 0 && (
           <p style={{ marginBottom: "24px", color: "rgba(226,232,240,0.8)" }}>
