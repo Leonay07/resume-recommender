@@ -17,124 +17,191 @@ from typing import List, Dict
 
 SKILL_DICT = {
     # Programming Languages
-    'programming_languages': [
-        'Python', 'Java', 'JavaScript', 'TypeScript', 'C++', 'C#', 'C',
-        'Go', 'Rust', 'Ruby', 'PHP', 'Swift', 'Kotlin', 'Scala',
-        'R', 'MATLAB', 'Julia', 'SQL', 'HTML', 'CSS', 'Shell',
-        'Bash', 'PowerShell', 'Perl', 'Objective-C', 'Dart', 'Elixir',
-        'Haskell', 'Clojure', 'F#', 'VBA', 'Groovy', 'Lua'
+    "programming_languages": [
+        "Python", "Java", "JavaScript", "TypeScript", "C++", "C#", "C",
+        "Go", "Rust", "Ruby", "PHP", "Swift", "Kotlin", "Scala",
+        "R", "MATLAB", "Julia", "SQL", "HTML", "CSS", "Shell",
+        "Bash", "PowerShell", "Perl", "Objective-C", "Dart", "Elixir",
+        "Haskell", "Clojure", "F#", "VBA", "Groovy", "Lua"
     ],
 
     # Machine Learning & Data Science Frameworks
-    'ml_frameworks': [
-        'TensorFlow', 'PyTorch', 'Keras', 'scikit-learn', 'XGBoost',
-        'LightGBM', 'CatBoost', 'Hugging Face', 'Transformers',
-        'OpenCV', 'NLTK', 'spaCy', 'Gensim', 'FastAI', 'MXNet',
-        'Caffe', 'Theano', 'JAX', 'PaddlePaddle', 'ONNX',
-        'MLflow', 'Weights & Biases', 'Neptune', 'Comet'
+    "ml_frameworks": [
+        "TensorFlow", "PyTorch", "Keras", "scikit-learn", "XGBoost",
+        "LightGBM", "CatBoost", "Hugging Face", "Transformers",
+        "OpenCV", "NLTK", "spaCy", "Gensim", "FastAI", "MXNet",
+        "Caffe", "Theano", "JAX", "PaddlePaddle", "ONNX",
+        "MLflow", "Weights & Biases", "Neptune", "Comet"
     ],
 
     # Data Processing & Analysis Tools
-    'data_tools': [
-        'Pandas', 'NumPy', 'Spark', 'Hadoop', 'Hive', 'Kafka',
-        'Airflow', 'Tableau', 'Power BI', 'Excel', 'Jupyter',
-        'Databricks', 'Snowflake', 'Dask', 'Polars', 'Prefect',
-        'Luigi', 'Apache Beam', 'Flink', 'Storm', 'SAS',
-        'SPSS', 'Looker', 'Qlik', 'Alteryx', 'Talend'
+    "data_tools": [
+        "Pandas", "NumPy", "Spark", "Hadoop", "Hive", "Kafka",
+        "Airflow", "Tableau", "Power BI", "Excel", "Jupyter",
+        "Databricks", "Snowflake", "Dask", "Polars", "Prefect",
+        "Luigi", "Apache Beam", "Flink", "Storm", "SAS",
+        "SPSS", "Looker", "Qlik", "Alteryx", "Talend",
+        "Google Sheets", "Google Data Studio"
     ],
 
     # Cloud Platforms & Services
-    'cloud_platforms': [
-        'AWS', 'Azure', 'GCP', 'Google Cloud', 'Heroku',
-        'DigitalOcean', 'Alibaba Cloud', 'IBM Cloud', 'Oracle Cloud',
-        'Salesforce', 'CloudFlare', 'Vercel', 'Netlify',
-        'AWS Lambda', 'AWS S3', 'AWS EC2', 'AWS RDS', 'AWS EMR',
-        'Azure ML', 'Google BigQuery', 'Redshift', 'Athena'
+    "cloud_platforms": [
+        "AWS", "Azure", "GCP", "Google Cloud", "Heroku",
+        "DigitalOcean", "Alibaba Cloud", "IBM Cloud", "Oracle Cloud",
+        "Salesforce", "CloudFlare", "Vercel", "Netlify",
+        "AWS Lambda", "AWS S3", "AWS EC2", "AWS RDS", "AWS EMR",
+        "Azure ML", "Google BigQuery", "Redshift", "Athena"
     ],
 
     # Databases & Data Storage
-    'databases': [
-        'MySQL', 'PostgreSQL', 'MongoDB', 'Redis', 'Cassandra',
-        'DynamoDB', 'SQLite', 'Oracle', 'SQL Server', 'Elasticsearch',
-        'Neo4j', 'MariaDB', 'CouchDB', 'Firebase', 'Supabase',
-        'InfluxDB', 'TimescaleDB', 'Memcached', 'RocksDB',
-        'HBase', 'Couchbase', 'ArangoDB', 'RethinkDB'
+    "databases": [
+        "MySQL", "PostgreSQL", "MongoDB", "Redis", "Cassandra",
+        "DynamoDB", "SQLite", "Oracle", "SQL Server", "Elasticsearch",
+        "Neo4j", "MariaDB", "CouchDB", "Firebase", "Supabase",
+        "InfluxDB", "TimescaleDB", "Memcached", "RocksDB",
+        "HBase", "Couchbase", "ArangoDB", "RethinkDB",
+        "Snowflake", "Redshift Spectrum", "BigQuery"
     ],
 
     # DevOps & Infrastructure Tools
-    'devops_tools': [
-        'Docker', 'Kubernetes', 'Jenkins', 'Git', 'GitHub', 'GitLab',
-        'CI/CD', 'Terraform', 'Ansible', 'Prometheus', 'Grafana',
-        'CircleCI', 'Travis CI', 'GitHub Actions', 'ArgoCD',
-        'Helm', 'Vagrant', 'Puppet', 'Chef', 'Nagios',
-        'Datadog', 'New Relic', 'Splunk', 'ELK Stack', 'Istio'
+    "devops_tools": [
+        "Docker", "Kubernetes", "Jenkins", "Git", "GitHub", "GitLab",
+        "CI/CD", "Terraform", "Ansible", "Prometheus", "Grafana",
+        "CircleCI", "Travis CI", "GitHub Actions", "ArgoCD",
+        "Helm", "Vagrant", "Puppet", "Chef", "Nagios",
+        "Datadog", "New Relic", "Splunk", "ELK Stack", "Istio",
+        "Sentry", "Airflow", "Prefect"
     ],
 
     # Web Development Frameworks
-    'web_frameworks': [
-        'React', 'Vue', 'Angular', 'Django', 'Flask', 'FastAPI',
-        'Node.js', 'Express', 'Spring', 'ASP.NET', 'Ruby on Rails',
-        'Next.js', 'Svelte', 'Laravel', 'Symfony', 'Nuxt.js',
-        'NestJS', 'Gatsby', 'Remix', 'SvelteKit', 'Solid.js',
-        'jQuery', 'Bootstrap', 'Tailwind CSS', 'Material UI'
+    "web_frameworks": [
+        "React", "Vue", "Angular", "Django", "Flask", "FastAPI",
+        "Node.js", "Express", "Spring", "ASP.NET", "Ruby on Rails",
+        "Next.js", "Svelte", "Laravel", "Symfony", "Nuxt.js",
+        "NestJS", "Gatsby", "Remix", "SvelteKit", "Solid.js",
+        "jQuery", "Bootstrap", "Tailwind CSS", "Material UI",
+        "Ant Design", "Chakra UI"
     ],
 
     # Testing & Quality Assurance
-    'testing_tools': [
-        'Jest', 'Pytest', 'Selenium', 'Cypress', 'JUnit',
-        'Mocha', 'Chai', 'Jasmine', 'TestNG', 'Cucumber',
-        'Postman', 'SoapUI', 'JMeter', 'LoadRunner',
-        'unittest', 'Robot Framework', 'Playwright', 'Appium'
+    "testing_tools": [
+        "Jest", "Pytest", "Selenium", "Cypress", "JUnit",
+        "Mocha", "Chai", "Jasmine", "TestNG", "Cucumber",
+        "Postman", "SoapUI", "JMeter", "LoadRunner",
+        "unittest", "Robot Framework", "Playwright", "Appium",
+        "Unit Testing", "Integration Testing", "End-to-End Testing",
+        "Test Automation"
     ],
 
     # Mobile Development
-    'mobile_frameworks': [
-        'React Native', 'Flutter', 'Swift', 'SwiftUI', 'Kotlin',
-        'Xamarin', 'Ionic', 'Cordova', 'Android Studio', 'Xcode'
+    "mobile_frameworks": [
+        "React Native", "Flutter", "Swift", "SwiftUI", "Kotlin",
+        "Xamarin", "Ionic", "Cordova", "Android Studio", "Xcode"
     ],
 
     # Version Control & Collaboration
-    'collaboration_tools': [
-        'Git', 'GitHub', 'GitLab', 'Bitbucket', 'SVN',
-        'Jira', 'Confluence', 'Trello', 'Asana', 'Slack',
-        'Teams', 'Notion', 'Linear'
+    "collaboration_tools": [
+        "Git", "GitHub", "GitLab", "Bitbucket", "SVN",
+        "Jira", "Confluence", "Trello", "Asana", "Slack",
+        "Teams", "Notion", "Linear", "ClickUp", "Monday.com"
     ],
 
     # General Technical Skills & Concepts
-    'technical_concepts': [
-        'Machine Learning', 'Deep Learning', 'NLP', 'Computer Vision',
-        'Data Analysis', 'Statistical Modeling', 'A/B Testing',
-        'ETL', 'RESTful API', 'GraphQL', 'Microservices',
-        'Agile', 'Scrum', 'Kanban', 'DevOps', 'MLOps',
-        'Data Visualization', 'Big Data', 'Business Intelligence',
-        'Data Engineering', 'Data Warehousing', 'Data Mining',
-        'Time Series Analysis', 'Recommendation Systems',
-        'Natural Language Processing', 'Image Processing',
-        'Reinforcement Learning', 'Transfer Learning',
-        'Neural Networks', 'Convolutional Neural Networks',
-        'Recurrent Neural Networks', 'Transformer Models',
-        'Object-Oriented Programming', 'Functional Programming',
-        'Algorithm Design', 'Data Structures', 'System Design',
-        'Distributed Systems', 'Cloud Computing', 'Edge Computing',
-        'API Development', 'Web Scraping', 'Data Pipelines',
-        'Feature Engineering', 'Model Deployment', 'Model Monitoring',
-        'Experiment Design', 'Hypothesis Testing', 'Regression Analysis',
-        'Classification', 'Clustering', 'Dimensionality Reduction',
-        'Ensemble Methods', 'Gradient Boosting', 'Random Forest',
-        'Support Vector Machines', 'Decision Trees', 'K-Means',
-        'Principal Component Analysis', 'Cross Validation'
+    "technical_concepts": [
+        "Machine Learning", "Deep Learning", "NLP", "Computer Vision",
+        "Data Analysis", "Statistical Modeling", "A/B Testing",
+        "ETL", "RESTful API", "GraphQL", "Microservices",
+        "Agile", "Scrum", "Kanban", "DevOps", "MLOps",
+        "Data Visualization", "Big Data", "Business Intelligence",
+        "Data Engineering", "Data Warehousing", "Data Mining",
+        "Time Series Analysis", "Recommendation Systems",
+        "Natural Language Processing", "Image Processing",
+        "Reinforcement Learning", "Transfer Learning",
+        "Neural Networks", "Convolutional Neural Networks",
+        "Recurrent Neural Networks", "Transformer Models",
+        "Object-Oriented Programming", "Functional Programming",
+        "Algorithm Design", "Data Structures", "System Design",
+        "Distributed Systems", "Cloud Computing", "Edge Computing",
+        "API Development", "Web Scraping", "Data Pipelines",
+        "Feature Engineering", "Model Deployment", "Model Monitoring",
+        "Experiment Design", "Hypothesis Testing", "Regression Analysis",
+        "Classification", "Clustering", "Dimensionality Reduction",
+        "Ensemble Methods", "Gradient Boosting", "Random Forest",
+        "Support Vector Machines", "Decision Trees", "K-Means",
+        "Principal Component Analysis", "Cross Validation",
+        "Time Series Forecasting", "Causal Inference",
+        "Survival Analysis", "Bayesian Inference"
     ],
 
     # Additional Specialized Skills
-    'specialized_skills': [
-        'FAISS', 'Pinecone', 'Weaviate', 'ChromaDB', 'LangChain',
-        'LlamaIndex', 'RAG', 'Vector Search', 'Embeddings',
-        'BERT', 'GPT', 'T5', 'LLaMA', 'Claude', 'Llama',
-        'Stable Diffusion', 'DALL-E', 'Whisper', 'SAM',
-        'Segment Anything', 'YOLO', 'ResNet', 'VGG',
-        'Blockchain', 'Smart Contracts', 'Web3', 'Solidity',
-        'Cryptography', 'Cybersecurity', 'Penetration Testing',
-        'Network Security', 'Information Security'
+    "specialized_skills": [
+        "FAISS", "Pinecone", "Weaviate", "ChromaDB", "LangChain",
+        "LlamaIndex", "RAG", "Vector Search", "Embeddings",
+        "BERT", "GPT", "T5", "LLaMA", "Claude", "Llama",
+        "Stable Diffusion", "DALL-E", "Whisper", "SAM",
+        "Segment Anything", "YOLO", "ResNet", "VGG",
+        "Blockchain", "Smart Contracts", "Web3", "Solidity",
+        "Cryptography", "Cybersecurity", "Penetration Testing",
+        "Network Security", "Information Security"
+    ],
+
+    # Soft Skills & Professional Skills
+    "soft_skills": [
+        "Communication", "Written Communication", "Verbal Communication",
+        "Presentation Skills", "Public Speaking",
+        "Teamwork", "Collaboration", "Cross-functional Collaboration",
+        "Problem Solving", "Critical Thinking", "Analytical Thinking",
+        "Leadership", "People Management", "Mentoring", "Coaching",
+        "Time Management", "Prioritization", "Multitasking",
+        "Attention to Detail", "Adaptability", "Flexibility",
+        "Stakeholder Management", "Conflict Resolution",
+        "Decision Making", "Negotiation", "Self-motivation",
+        "Ownership", "Accountability"
+    ],
+
+    # Project Management & Delivery
+    "project_management": [
+        "Project Management", "Program Management",
+        "Product Delivery", "Roadmapping",
+        "Requirements Gathering", "Requirement Analysis",
+        "Sprint Planning", "Backlog Grooming", "User Stories",
+        "OKRs", "KPIs", "Milestone Planning",
+        "Risk Management", "Stakeholder Communication",
+        "Change Management", "Resource Planning"
+    ],
+
+    # Product Management & UX
+    "product_management": [
+        "Product Management", "Product Strategy", "Product Discovery",
+        "User Research", "User Interviews", "Usability Testing",
+        "Customer Journey Mapping", "Personas",
+        "A/B Testing", "Experimentation", "Growth Experiments",
+        "Feature Prioritization", "PRD", "Go-to-market Strategy",
+        "Customer Feedback", "Voice of Customer"
+    ],
+
+    # Business & Analytics Skills
+    "business_analytics": [
+        "Business Analysis", "Business Analytics",
+        "Financial Modeling", "Revenue Forecasting",
+        "Cohort Analysis", "Segmentation",
+        "Churn Analysis", "LTV Modeling",
+        "Pricing Strategy", "Market Research",
+        "Competitive Analysis", "Dashboarding",
+        "KPI Reporting", "Ad Hoc Analysis",
+        "Marketing Analytics", "Attribution Modeling",
+        "Funnel Analysis", "Product Analytics",
+        "Customer Insights", "Operations Analytics"
+    ],
+
+    # Domain Knowledge (common for DS/DE/PM roles)
+    "domain_knowledge": [
+        "E-commerce", "Marketplace", "FinTech", "Payments",
+        "Banking", "Insurance", "Healthcare", "Pharmaceutical",
+        "Biotech", "Retail", "Logistics", "Supply Chain",
+        "Transportation", "Ride Sharing", "Food Delivery",
+        "AdTech", "MarTech", "EdTech", "Gaming",
+        "Social Media", "Search", "Recommendation"
     ]
 }
 
@@ -144,78 +211,90 @@ SKILL_DICT = {
 
 SKILL_ALIASES = {
     # Programming Languages
-    'js': 'JavaScript',
-    'ts': 'TypeScript',
-    'py': 'Python',
-    'cpp': 'C++',
-    'c++': 'C++',
-    'csharp': 'C#',
-    'c#': 'C#',
-    'golang': 'Go',
-    'node': 'Node.js',
-    'nodejs': 'Node.js',
+    "js": "JavaScript",
+    "ts": "TypeScript",
+    "py": "Python",
+    "cpp": "C++",
+    "c++": "C++",
+    "csharp": "C#",
+    "c#": "C#",
+    "golang": "Go",
+    "node": "Node.js",
+    "nodejs": "Node.js",
 
     # ML Frameworks
-    'tf': 'TensorFlow',
-    'tensorflow': 'TensorFlow',
-    'torch': 'PyTorch',
-    'pytorch': 'PyTorch',
-    'sklearn': 'scikit-learn',
-    'scikit': 'scikit-learn',
-    'hf': 'Hugging Face',
-    'huggingface': 'Hugging Face',
+    "tf": "TensorFlow",
+    "tensorflow": "TensorFlow",
+    "torch": "PyTorch",
+    "pytorch": "PyTorch",
+    "sklearn": "scikit-learn",
+    "scikit": "scikit-learn",
+    "hf": "Hugging Face",
+    "huggingface": "Hugging Face",
 
     # Cloud Platforms
-    'aws': 'AWS',
-    'amazon web services': 'AWS',
-    'gcp': 'GCP',
-    'google cloud platform': 'GCP',
-    'azure': 'Azure',
-    'microsoft azure': 'Azure',
+    "aws": "AWS",
+    "amazon web services": "AWS",
+    "gcp": "GCP",
+    "google cloud platform": "GCP",
+    "azure": "Azure",
+    "microsoft azure": "Azure",
 
     # Concepts
-    'ml': 'Machine Learning',
-    'machine learning': 'Machine Learning',
-    'dl': 'Deep Learning',
-    'deep learning': 'Deep Learning',
-    'cv': 'Computer Vision',
-    'computer vision': 'Computer Vision',
-    'nlp': 'NLP',
-    'natural language processing': 'NLP',
-    'ai': 'Machine Learning',
-    'artificial intelligence': 'Machine Learning',
+    "ml": "Machine Learning",
+    "machine learning": "Machine Learning",
+    "dl": "Deep Learning",
+    "deep learning": "Deep Learning",
+    "cv": "Computer Vision",
+    "computer vision": "Computer Vision",
+    "nlp": "NLP",
+    "natural language processing": "NLP",
+    "ai": "Machine Learning",
+    "artificial intelligence": "Machine Learning",
 
     # Databases
-    'postgres': 'PostgreSQL',
-    'postgresql': 'PostgreSQL',
-    'mongo': 'MongoDB',
-    'mongodb': 'MongoDB',
-    'mysql': 'MySQL',
+    "postgres": "PostgreSQL",
+    "postgresql": "PostgreSQL",
+    "mongo": "MongoDB",
+    "mongodb": "MongoDB",
+    "mysql": "MySQL",
 
     # DevOps
-    'k8s': 'Kubernetes',
-    'kubernetes': 'Kubernetes',
-    'cicd': 'CI/CD',
-    'ci/cd': 'CI/CD',
+    "k8s": "Kubernetes",
+    "kubernetes": "Kubernetes",
+    "cicd": "CI/CD",
+    "ci/cd": "CI/CD",
 
-    # Other
-    'api': 'RESTful API',
-    'rest api': 'RESTful API',
-    'restful': 'RESTful API',
-    'bi': 'Business Intelligence',
-    'business intelligence': 'Business Intelligence',
-    'etl': 'ETL',
-    'cnn': 'Convolutional Neural Networks',
-    'rnn': 'Recurrent Neural Networks',
-    'oop': 'Object-Oriented Programming',
-    'fp': 'Functional Programming',
-    'pca': 'Principal Component Analysis',
-    'svm': 'Support Vector Machines',
-    'rf': 'Random Forest',
-    'gb': 'Gradient Boosting',
-    'xgb': 'XGBoost',
-    'lgbm': 'LightGBM'
+    # Analytics / Tools aliases
+    "ppt": "PowerPoint",
+    "power point": "PowerPoint",
+    "ga": "Google Analytics",
+    "ga4": "Google Analytics",
+    "looker studio": "Google Data Studio",
+    "gds": "Google Data Studio",
+
+    # Business / Experimentation
+    "a/b testing": "A/B Testing",
+    "ab testing": "A/B Testing",
+    "abtest": "A/B Testing",
+
+    # Project / Product Management
+    "pm": "Project Management",
+    "product manager": "Product Management",
+    "project manager": "Project Management",
+    "stakeholder mgmt": "Stakeholder Management",
+    "stakeholder management": "Stakeholder Management",
+
+    # Soft skills (common lowercase forms)
+    "communication skills": "Communication",
+    "team player": "Teamwork",
+    "detail-oriented": "Attention to Detail",
+    "detail oriented": "Attention to Detail",
+    "problem-solving": "Problem Solving",
+    "problem solving": "Problem Solving",
+    "critical thinking": "Critical Thinking",
 }
+
 
 # ========================================
 # Helper Functions
