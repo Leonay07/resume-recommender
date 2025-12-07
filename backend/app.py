@@ -1,23 +1,20 @@
 # backend/app.py
-"""
-Main FastAPI application (Module 03 - Step 3)
-Implements:
-- /jobs/random
-- /jobs/search
-- /match (mock NLP)
-- /match/more (pagination using cache.json)
-"""
-
 import os
 import json
+import shutil
+import tempfile
 from fastapi import FastAPI, UploadFile, Form
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
 from job_fetcher import fetch_jobs_from_api, fetch_random_jobs
 from nlp_model_stub import recommend_jobs
-from fastapi.middleware.cors import CORSMiddleware
+# add 引入真实的 Parser 用于正确读取 PDF/DOCX
+from nlp_model.resume_parser import ResumeParser 
 
 app = FastAPI()
 
-# CORS for frontend (Vite dev server)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  
@@ -28,28 +25,16 @@ app.add_middleware(
 
 CACHE_PATH = "cache.json"
 
-
-# ------------------------------------------------------
-# Random jobs for homepage
-# ------------------------------------------------------
 @app.get("/jobs/random")
 def get_random_jobs():
     results = fetch_random_jobs()
     return {"results": results}
 
-
-# ------------------------------------------------------
-# Normal search by title + location
-# ------------------------------------------------------
 @app.get("/jobs/search")
 def search_jobs(title: str, location: str):
     results = fetch_jobs_from_api(title, location)
     return {"results": results}
 
-
-# ------------------------------------------------------
-# Main matching endpoint (Accept PDF resume)
-# ------------------------------------------------------
 @app.post("/match")
 async def match_resume(
     file: UploadFile = Form(...),
@@ -57,58 +42,57 @@ async def match_resume(
     location: str = Form(...),
     experience: str = Form(...)
 ):
-    """
-    1. Receive resume PDF/TXT/DOCX
-    2. Fetch jobs from API
-    3. Stub model computes match scores
-    4. Save full results in cache.json
-    5. Return top 10
-    """
+    # --- Step 1: 安全处理文件上传 ---
+    # 获取文件后缀 (如 .pdf)
+    suffix = os.path.splitext(file.filename)[1]
+    
+    # 创建临时文件保存二进制流
+    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+        shutil.copyfileobj(file.file, tmp)
+        tmp_path = tmp.name
 
-    # Step 1: fetch job list
+    try:
+        # --- Step 2: 使用 ResumeParser 提取文本 ---
+        # refine之前的乱码 Bug
+        parser = ResumeParser()
+        try:
+            resume_text = parser.load_resume(tmp_path)
+        except Exception as e:
+            return {"error": f"Failed to parse resume: {str(e)}", "results": []}
+        
+    finally:
+        # 清理临时文件
+        if os.path.exists(tmp_path):
+            os.remove(tmp_path)
+
+    # --- Step 3: 抓取职位 ---
     job_list = fetch_jobs_from_api(title, location)
 
-    # Step 2: read resume bytes (not parsing PDF here)
-    resume_bytes = await file.read()
-    resume_text = resume_bytes.decode("utf-8", errors="ignore")  # Stub only
-
-    # Step 3: call stub matching model
+    # --- Step 4: 调用五维打分逻辑 ---
     results = recommend_jobs(resume_text, job_list, title, location, experience)
 
-    # Step 4: save entire result list
+    # --- Step 5: 缓存并返回 ---
     with open(CACHE_PATH, "w") as f:
         json.dump(results, f)
 
-    # Step 5: return top 10
     return {"results": results[:10]}
 
-
-# ------------------------------------------------------
-# Load more matched jobs
-# ------------------------------------------------------
 @app.get("/match/more")
 def load_more_matches():
     if not os.path.exists(CACHE_PATH):
         return {"results": []}
-
     try:
         with open(CACHE_PATH, "r") as f:
             data = json.load(f)
     except:
         return {"results": []}
-
-    if not isinstance(data, list):
-        return {"results": []}
-
     return {"results": data}
 
-
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
-
-# Serve built frontend files
-app.mount("/", StaticFiles(directory="static", html=True), name="static")
+if os.path.isdir("static"):
+    app.mount("/", StaticFiles(directory="static", html=True), name="static")
 
 @app.get("/")
 def serve_home():
-    return FileResponse("static/index.html")
+    if os.path.exists("static/index.html"):
+        return FileResponse("static/index.html")
+    return {"message": "Frontend not built."}
