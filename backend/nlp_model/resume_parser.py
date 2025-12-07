@@ -1,16 +1,3 @@
-"""
-Resume Parser Module
-
-This module provides comprehensive resume parsing functionality including:
-- Loading resume files (PDF and DOCX formats)
-- Identifying resume sections (Skills, Experience, Education, Projects)
-- Extracting technical skills using the skill dictionary
-- Inferring target job roles based on resume content
-
-Author: Renke Deng (Member A)
-Version: 1.0
-"""
-
 import os
 import re
 from typing import Dict, List, Optional, Tuple
@@ -54,33 +41,54 @@ logger = logging.getLogger(__name__)
 # ========================================
 
 # Section keywords for resume parsing
+# Extended with more variations and common formats
 SECTION_KEYWORDS = {
     'skills': [
-        'skills', 'technical skills', 'core competencies',
+        'skills', 'skill', 'technical skills', 'core competencies',
         'technologies', 'expertise', 'proficiencies',
         'technical expertise', 'programming skills',
-        'tools and technologies', 'technical proficiencies'
+        'tools and technologies', 'technical proficiencies',
+        'competencies', 'technical competencies', 'areas of expertise',
+        'technical summary', 'technology skills', 'key skills',
+        'professional skills', 'software skills', 'computer skills',
+        'qualifications', 'technical qualifications', 'abilities',
+        'certifications and skills', 'skills and certifications',
+        'languages and tools', 'tools', 'programming languages',
+        'frameworks', 'software', 'platforms'
     ],
     'experience': [
         'experience', 'work experience', 'professional experience',
         'employment history', 'work history', 'career history',
-        'professional background', 'employment', 'career'
+        'professional background', 'employment', 'career',
+        'job experience', 'relevant experience', 'professional history',
+        'work summary', 'employment experience', 'positions held',
+        'career experience', 'job history', 'internship',
+        'internships', 'internship experience', 'co-op experience'
     ],
     'education': [
         'education', 'academic background', 'qualifications',
         'academic credentials', 'educational background',
-        'degrees', 'academic history'
+        'degrees', 'academic history', 'academic',
+        'educational qualifications', 'schooling', 'training',
+        'academic qualifications', 'certifications', 'credentials',
+        'education and certifications', 'courses', 'coursework'
     ],
     'projects': [
         'projects', 'personal projects', 'academic projects',
         'project experience', 'selected projects', 'key projects',
-        'notable projects', 'portfolio'
+        'notable projects', 'portfolio', 'side projects',
+        'professional projects', 'relevant projects', 'project work',
+        'technical projects', 'research projects', 'capstone',
+        'capstone project', 'thesis', 'dissertation'
     ],
     'summary': [
         'summary', 'professional summary', 'objective',
         'profile', 'about me', 'career objective',
         'professional profile', 'executive summary',
-        'career summary', 'personal statement'
+        'career summary', 'personal statement',
+        'about', 'introduction', 'bio', 'overview',
+        'professional objective', 'goals', 'career goals',
+        'statement', 'highlights', 'professional highlights'
     ]
 }
 
@@ -155,32 +163,117 @@ def _clean_text(text: str) -> str:
     return text.strip()
 
 
-def _is_section_header(line: str, max_length: int = 50) -> bool:
+def _is_section_header(line: str, max_length: int = 80) -> bool:
     """
     Check if a line is likely a section header.
 
+    Enhanced detection with multiple heuristics to handle various resume formats:
+    - ALL CAPS headers (e.g., "SKILLS", "EXPERIENCE")
+    - Title Case headers (e.g., "Skills", "Work Experience")
+    - Headers with colons (e.g., "Skills:", "Experience:")
+    - Headers with special markers (e.g., "--- Skills ---", "== Experience ==")
+    - Short lines that could be headers
+
     Args:
         line: Text line to check
-        max_length: Maximum length for a header
+        max_length: Maximum length for a header (increased to 80)
 
     Returns:
         True if line appears to be a header
     """
     line = line.strip()
-    # Headers are typically short
-    if len(line) > max_length or len(line) < 2:
+
+    # Skip empty or very short lines
+    if len(line) < 2:
         return False
 
-    # Headers often end with colons or are in all caps
-    if line.endswith(':') or line.isupper():
+    # Skip lines that are too long to be headers
+    if len(line) > max_length:
+        return False
+
+    # Remove common decorative characters for analysis
+    clean_line = re.sub(r'^[\s\-=_•*#|:]+|[\s\-=_•*#|:]+$', '', line).strip()
+
+    # Skip if nothing left after cleaning
+    if len(clean_line) < 2:
+        return False
+
+    # Check 1: ALL CAPS (strong indicator)
+    if clean_line.isupper() and len(clean_line) >= 2:
         return True
 
-    # Headers typically don't have many words
-    word_count = len(line.split())
-    if word_count <= 4:
+    # Check 2: Ends with colon (common header format)
+    if line.endswith(':'):
         return True
+
+    # Check 3: Starts with common decorative markers
+    if re.match(r'^[\-=_•*#]{2,}', line) or re.match(r'^[|►▶→●○◆◇■□▪▫]+', line):
+        return True
+
+    # Check 4: Title Case with limited words (likely header)
+    words = clean_line.split()
+    word_count = len(words)
+
+    if word_count <= 5:
+        # Check if it looks like a title (starts with uppercase, few words)
+        if clean_line[0].isupper():
+            # Additional check: headers usually don't contain certain patterns
+            # Skip lines that look like sentences or bullet points
+            if not re.search(r'\d{4}', clean_line):  # No years (like "2020-2023")
+                if not re.match(r'^[\-•*]\s', line):  # Not a bullet point
+                    if word_count <= 4:
+                        return True
+
+    # Check 5: Line is wrapped in decorative characters
+    if re.match(r'^[\-=_*#]+\s*\w+.*\s*[\-=_*#]+$', line):
+        return True
+
+    # Check 6: Very short lines (1-3 words) that start with uppercase
+    if word_count <= 3 and clean_line[0].isupper():
+        # Skip if it looks like a name (two capitalized words)
+        if not (word_count == 2 and all(w[0].isupper() for w in words)):
+            return True
 
     return False
+
+
+def _match_section_keyword(line: str, section_keywords: dict) -> Optional[str]:
+    """
+    Match a line against section keywords.
+
+    Enhanced matching with:
+    - Case-insensitive matching
+    - Cleaned line matching (removes decorations)
+    - Partial word matching for common headers
+
+    Args:
+        line: The line to check
+        section_keywords: Dictionary of section names to keyword lists
+
+    Returns:
+        Section name if matched, None otherwise
+    """
+    line_lower = line.lower().strip()
+
+    # Remove common decorative characters
+    clean_line = re.sub(r'^[\s\-=_•*#|:]+|[\s\-=_•*#|:]+$', '', line_lower).strip()
+    # Also remove trailing colons
+    clean_line = clean_line.rstrip(':').strip()
+
+    for section_name, keywords in section_keywords.items():
+        for keyword in keywords:
+            keyword_lower = keyword.lower()
+            # Exact match after cleaning
+            if clean_line == keyword_lower:
+                return section_name
+            # Keyword is contained in the line
+            if keyword_lower in clean_line:
+                return section_name
+            # Line is contained in the keyword (for abbreviated headers)
+            if len(clean_line) >= 3 and clean_line in keyword_lower:
+                return section_name
+
+    return None
 
 
 # ========================================
@@ -314,6 +407,11 @@ class ResumeParser:
         """
         Parse resume text into different sections.
 
+        Enhanced parsing with multiple strategies:
+        1. First pass: Look for explicit section headers
+        2. Second pass: If no sections found, try keyword-based detection
+        3. Fallback: Keep all content accessible for skill extraction
+
         Identifies common resume sections like Skills, Experience, Education,
         Projects, and Summary based on keyword matching.
 
@@ -340,27 +438,26 @@ class ResumeParser:
 
         lines = resume_text.split('\n')
         current_section = 'other'
+        sections_found = []
 
+        # First pass: standard header-based parsing
         for line in lines:
             line_stripped = line.strip()
             if not line_stripped:
                 continue
 
-            line_lower = line_stripped.lower()
-
             # Check if this line is a section header
             section_found = False
 
             if _is_section_header(line_stripped):
-                for section_name, keywords in SECTION_KEYWORDS.items():
-                    for keyword in keywords:
-                        if keyword in line_lower:
-                            current_section = section_name
-                            section_found = True
-                            logger.debug(f"Found section: {section_name}")
-                            break
-                    if section_found:
-                        break
+                # Use enhanced keyword matching
+                matched_section = _match_section_keyword(line_stripped, SECTION_KEYWORDS)
+                if matched_section:
+                    current_section = matched_section
+                    section_found = True
+                    if matched_section not in sections_found:
+                        sections_found.append(matched_section)
+                    logger.debug(f"Found section header: '{line_stripped}' -> {matched_section}")
 
             # Add content to current section (skip the header line itself)
             if not section_found:
@@ -370,9 +467,100 @@ class ResumeParser:
         for key in sections:
             sections[key] = sections[key].strip()
 
+        # Second pass: If no meaningful sections found, try alternative detection
+        meaningful_sections = [s for s in sections_found if s != 'other']
+
+        if not meaningful_sections:
+            logger.warning("No section headers detected. Attempting keyword-based section detection...")
+            sections = self._fallback_section_detection(resume_text)
+            sections_found = [k for k, v in sections.items() if v and k != 'other']
+
         # Log section statistics
         section_counts = {k: len(v) for k, v in sections.items() if v}
         logger.info(f"Sections parsed: {list(section_counts.keys())}")
+
+        if not meaningful_sections:
+            logger.warning("Could not identify distinct sections. "
+                          "Skills will be extracted from full resume text.")
+
+        return sections
+
+    def _fallback_section_detection(self, resume_text: str) -> Dict[str, str]:
+        """
+        Fallback method to detect sections when header-based parsing fails.
+
+        Uses keyword proximity and content analysis to identify sections
+        even without clear headers.
+
+        Args:
+            resume_text: Complete resume text
+
+        Returns:
+            Dictionary mapping section names to their content
+        """
+        sections = {
+            'skills': '',
+            'experience': '',
+            'education': '',
+            'projects': '',
+            'summary': '',
+            'other': ''
+        }
+
+        lines = resume_text.split('\n')
+        full_text = resume_text.lower()
+
+        # Strategy 1: Look for inline section indicators
+        # Some resumes have "Skills: Python, Java, ..." format
+        inline_patterns = {
+            'skills': [
+                r'(?:skills|technologies|tools|languages)\s*[:\-]\s*(.+)',
+                r'(?:proficient\s+(?:in|with)|experienced\s+(?:in|with))\s*[:\-]?\s*(.+)',
+            ],
+            'education': [
+                r'(?:university|college|bachelor|master|phd|degree)\s*[:\-]?\s*(.+)',
+            ]
+        }
+
+        for section_name, patterns in inline_patterns.items():
+            for pattern in patterns:
+                matches = re.findall(pattern, full_text, re.IGNORECASE | re.MULTILINE)
+                if matches:
+                    sections[section_name] += ' '.join(matches) + '\n'
+
+        # Strategy 2: Segment by keywords in the text
+        # Look for lines that contain section keywords
+        current_section = 'other'
+        for line in lines:
+            line_stripped = line.strip()
+            if not line_stripped:
+                continue
+
+            line_lower = line_stripped.lower()
+
+            # Check if line contains a section keyword
+            for section_name, keywords in SECTION_KEYWORDS.items():
+                for keyword in keywords:
+                    # Check if keyword appears at start of line or standalone
+                    if (line_lower.startswith(keyword) or
+                        re.match(rf'^[\W]*{re.escape(keyword)}[\W]*$', line_lower) or
+                        (keyword in line_lower and len(line_stripped) < 50)):
+                        current_section = section_name
+                        break
+                else:
+                    continue
+                break
+
+            sections[current_section] += line + '\n'
+
+        # Clean up
+        for key in sections:
+            sections[key] = sections[key].strip()
+
+        # If still no skills section found, put all content in 'other'
+        # This ensures extract_skills can search the full text
+        if not sections['skills'] and not any(sections[k] for k in ['experience', 'education', 'projects']):
+            sections['other'] = resume_text
 
         return sections
 
@@ -387,6 +575,10 @@ class ResumeParser:
         Uses the skill dictionary to identify skills mentioned in the resume.
         Distinguishes between primary skills (found in Skills section) and
         secondary skills (found in other sections).
+
+        Enhanced with fallback logic:
+        - If no skills found in designated sections, searches 'other' section
+        - Ensures skills are always extracted even if section parsing fails
 
         Args:
             sections: Dictionary of resume sections from parse_sections()
@@ -422,8 +614,8 @@ class ResumeParser:
                 primary_skills.add(normalized)
                 skill_frequency[normalized] = len(matches)
 
-        # Search in other sections
-        other_sections = (
+        # Search in other named sections (experience, projects, summary, education)
+        named_sections = (
             sections.get('experience', '') + ' ' +
             sections.get('projects', '') + ' ' +
             sections.get('summary', '') + ' ' +
@@ -432,7 +624,7 @@ class ResumeParser:
 
         for skill in self.all_skills:
             pattern = r'\b' + re.escape(skill) + r'\b'
-            matches = re.findall(pattern, other_sections, re.IGNORECASE)
+            matches = re.findall(pattern, named_sections, re.IGNORECASE)
 
             if matches:
                 normalized = normalize_skill(skill)
@@ -442,6 +634,53 @@ class ResumeParser:
                 else:
                     # Add to existing count
                     skill_frequency[normalized] += len(matches)
+
+        # CRITICAL FALLBACK: If no skills found yet, search in 'other' section
+        # This handles cases where section parsing failed and all content is in 'other'
+        all_found = primary_skills.union(secondary_skills)
+
+        if not all_found:
+            other_section = sections.get('other', '')
+            if other_section:
+                logger.info("No skills found in named sections. "
+                           "Searching in 'other' section as fallback...")
+
+                for skill in self.all_skills:
+                    pattern = r'\b' + re.escape(skill) + r'\b'
+                    matches = re.findall(pattern, other_section, re.IGNORECASE)
+
+                    if matches:
+                        normalized = normalize_skill(skill)
+                        # Treat all skills from 'other' as secondary since
+                        # we couldn't identify the Skills section
+                        secondary_skills.add(normalized)
+                        skill_frequency[normalized] = skill_frequency.get(normalized, 0) + len(matches)
+
+                if secondary_skills:
+                    logger.info(f"Fallback extraction found {len(secondary_skills)} skills "
+                               "from 'other' section")
+
+        # Even if we found some skills, also search 'other' to ensure completeness
+        # This catches cases where some content wasn't properly categorized
+        elif sections.get('other', ''):
+            other_section = sections.get('other', '')
+            additional_found = 0
+
+            for skill in self.all_skills:
+                pattern = r'\b' + re.escape(skill) + r'\b'
+                matches = re.findall(pattern, other_section, re.IGNORECASE)
+
+                if matches:
+                    normalized = normalize_skill(skill)
+                    if normalized not in primary_skills and normalized not in secondary_skills:
+                        secondary_skills.add(normalized)
+                        skill_frequency[normalized] = len(matches)
+                        additional_found += 1
+                    elif normalized in skill_frequency:
+                        skill_frequency[normalized] += len(matches)
+
+            if additional_found > 0:
+                logger.debug(f"Found {additional_found} additional skills in 'other' section")
 
         all_skills = primary_skills.union(secondary_skills)
 
@@ -470,6 +709,10 @@ class ResumeParser:
         Analyzes the resume to determine what job roles the candidate is
         targeting. Considers explicit user input if provided, and falls back
         to analyzing summary and experience sections.
+
+        Enhanced with fallback logic:
+        - Searches 'other' section if named sections are empty
+        - Ensures role inference works even if section parsing fails
 
         Args:
             sections: Dictionary of resume sections
@@ -529,6 +772,26 @@ class ResumeParser:
                         score += 1
                 if score > 0:
                     role_scores[role] = score
+
+        # Step 4: FALLBACK - If still no roles found, search in 'other' section
+        # This handles cases where section parsing failed
+        if not role_scores:
+            other_text = sections.get('other', '').lower()
+            if other_text:
+                logger.info("No roles found in named sections. "
+                           "Searching in 'other' section as fallback...")
+
+                for role, keywords in JOB_ROLE_KEYWORDS.items():
+                    score = 0
+                    for keyword in keywords:
+                        if keyword in other_text:
+                            score += 1
+                    if score > 0:
+                        role_scores[role] = score
+
+                if role_scores:
+                    logger.info(f"Fallback found {len(role_scores)} potential roles "
+                               "from 'other' section")
 
         # Sort roles by score and add top 3 (excluding user input if already added)
         sorted_roles = sorted(role_scores.items(),
