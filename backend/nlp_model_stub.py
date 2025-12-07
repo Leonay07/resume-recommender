@@ -11,9 +11,14 @@ Author: Renke Deng (Member A)
 
 import os
 import tempfile
-from nlp_model import ResumeParser, extract_resume_skills, infer_target_roles
-from nlp_model.tfidf_matcher import compute_tfidf_scores
-from nlp_model.extract_job_skills_from_list import extract_job_skills_from_list
+from .nlp_model.resume_parser import (
+    ResumeParser,
+    extract_resume_skills,
+    infer_target_roles
+)
+
+from .nlp_model.tfidf_matcher import compute_tfidf_scores
+from .nlp_model.extract_job_skills_from_list import extract_job_skills_from_list
 
 
 def recommend_jobs(resume_text, job_list, title, location, experience):
