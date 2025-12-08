@@ -7,14 +7,14 @@ This module orchestrates the matching process by combining:
 1. Structured Skill Matching (using extract_job_skills_from_list)
 2. Semantic Matching (using tfidf_matcher)
 3. Role Intent Inference (using resume_parser)
-4. Heuristic Rules (Experience & Location)
+4. Heuristic Rules (Experience & Location) - ENHANCED & OPTIMIZED VERSION
 
 Author: Integration Lead
 """
 
 import re
 import logging
-# 使用绝对引用，确保在 app.py 启动时不报错
+# 使用绝对引用
 from nlp_model.resume_parser import ResumeParser, extract_resume_skills, infer_target_roles
 from nlp_model.extract_job_skills_from_list import extract_job_skills_from_list
 from nlp_model.tfidf_matcher import compute_tfidf_scores
@@ -23,11 +23,29 @@ from nlp_model.tfidf_matcher import compute_tfidf_scores
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# [新增] 美国州名到缩写的映射字典 (用于 Location 匹配)
+STATE_MAP = {
+    "alabama": "al", "alaska": "ak", "arizona": "az", "arkansas": "ar", "california": "ca",
+    "colorado": "co", "connecticut": "ct", "delaware": "de", "florida": "fl", "georgia": "ga",
+    "hawaii": "hi", "idaho": "id", "illinois": "il", "indiana": "in", "iowa": "ia",
+    "kansas": "ks", "kentucky": "ky", "louisiana": "la", "maine": "me", "maryland": "md",
+    "massachusetts": "ma", "michigan": "mi", "minnesota": "mn", "mississippi": "ms", "missouri": "mo",
+    "montana": "mt", "nebraska": "ne", "nevada": "nv", "new hampshire": "nh", "new jersey": "nj",
+    "new mexico": "nm", "new york": "ny", "north carolina": "nc", "north dakota": "nd", "ohio": "oh",
+    "oklahoma": "ok", "oregon": "or", "pennsylvania": "pa", "rhode island": "ri", "south carolina": "sc",
+    "south dakota": "sd", "tennessee": "tn", "texas": "tx", "utah": "ut", "vermont": "vt",
+    "virginia": "va", "washington": "wa", "west virginia": "wv", "wisconsin": "wi", "wyoming": "wy"
+}
+
 def recommend_jobs(resume_text, job_list, title, location, experience):
     """
     Main recommendation function implementing the 5-Dimensional Scoring System.
     """
     
+    # 1. [安全检查] 如果 API 没抓到职位，直接返回空
+    if not job_list:
+        return []
+
     # ==========================================
     # Phase 1: 解析用户数据 (User Profiling)
     # ==========================================
@@ -38,31 +56,33 @@ def recommend_jobs(resume_text, job_list, title, location, experience):
     # A. 提取用户技能 (User Skills)
     skills_result = extract_resume_skills(sections)
     extracted_skills = skills_result.get('all_skills', [])
-    # 关键修正：转为小写集合，确保匹配时不区分大小写
+    # 转为小写集合
     user_skills_set = {s.lower().strip() for s in extracted_skills}
 
     # B. 推断目标角色 (User Intent)
     target_roles = infer_target_roles(sections, title)
 
     # C. 解析用户经验 (User Experience)
-    # 从字符串 "3 years" 中提取数字 3
-    try:
-        user_yoe = int(re.search(r'\d+', str(experience)).group())
-    except:
-        user_yoe = 0
+    user_yoe_is_any = False
+    user_yoe = 0
     
-    logger.info(f"User Parsed - Skills: {len(user_skills_set)}, Roles: {target_roles}, YoE: {user_yoe}")
+    # [逻辑修复] 处理 "No preference"
+    if experience and "no preference" in str(experience).lower():
+        user_yoe_is_any = True
+        user_yoe = 0 
+    else:
+        try:
+            user_yoe = int(re.search(r'\d+', str(experience)).group())
+        except:
+            user_yoe = 0
+    
+    logger.info(f"User Parsed - Skills: {len(user_skills_set)}, Roles: {target_roles}, YoE: {user_yoe} (Any={user_yoe_is_any})")
 
     # ==========================================
     # Phase 2: 解析职位数据 (Job Processing)
     # ==========================================
     
-    # D. 结构化处理 (Structured Processing)
-    # 调用队友的代码，把 raw job list 变成带有 'skills' 字段的结构化列表
     structured_jobs = extract_job_skills_from_list(job_list)
-
-    # E. 语义处理 (Semantic Processing)
-    # 计算简历全文和所有 JD 的相似度
     ml_scores = compute_tfidf_scores(resume_text, job_list)
 
     results = []
@@ -75,7 +95,6 @@ def recommend_jobs(resume_text, job_list, title, location, experience):
     print(f"{'Job Title':<20} | Skill | Seman | Role | Exp  | Loc  | ==> Final")
     print("="*80)
 
-    # 使用 zip 同时遍历「结构化职位」和「ML分数」
     for job, tfidf_score in zip(structured_jobs, ml_scores):
         
         job_title = job.get("title", "").lower()
@@ -83,30 +102,31 @@ def recommend_jobs(resume_text, job_list, title, location, experience):
         job_loc = job.get("location", "").lower()
 
         # --------------------------------------
-        # 维度 1: 技能匹配 (Skills) - 权重 35%
+        # 维度 1: 技能匹配 (Skills) - 权重 40% (提升权重)
         # --------------------------------------
-        # 获取职位要求的技能，并同样转为小写集合
         raw_job_skills = job.get("skills", {}).get("all_skills", [])
         job_skills_set = {s.lower().strip() for s in raw_job_skills}
         
-        # 计算交集
         matched_skills_set = user_skills_set.intersection(job_skills_set)
-        matched_skills = list(matched_skills_set) # 这里的技能名是小写的
+        matched_skills = list(matched_skills_set)
         
-        # 分母保护：防止除以0
-        denom = max(len(job_skills_set), 1)
-        skill_score = len(matched_skills) / denom
+        # [分数优化] 设置分母上限。只要命中 7 个核心技能就算满分。
+        # 防止 JD 堆砌 30 个技能导致分数过低。
+        denom = min(len(job_skills_set), 7)
+        denom = max(denom, 1) # 防止除以0
+        
+        skill_score = min(1.0, len(matched_skills) / denom)
 
         # --------------------------------------
-        # 维度 2: 语义匹配 (TF-IDF) - 权重 30%
+        # 维度 2: 语义匹配 (TF-IDF) - 权重 25% (降低权重，放大数值)
         # --------------------------------------
-        content_score = tfidf_score
+        # [分数优化] TF-IDF 原始分通常在 0.1~0.3，我们给它乘以 3.0 的倍率
+        content_score = min(1.0, tfidf_score * 3.0)
 
         # --------------------------------------
         # 维度 3: 职位意图 (Role) - 权重 15%
         # --------------------------------------
         role_score = 0.0
-        # 只要 Title 或 Description 包含推断出的目标角色
         for role in target_roles:
             if role.lower() in job_title or role.lower() in job_desc:
                 role_score = 1.0
@@ -115,14 +135,12 @@ def recommend_jobs(resume_text, job_list, title, location, experience):
         # --------------------------------------
         # 维度 4: 经验匹配 (Experience) - 权重 10%
         # --------------------------------------
-        # 正则提取 JD 里的 "5+ years"
         exp_match = re.search(r'(\d+)\+?\s*years?', job_desc)
-        if exp_match:
-            req_yoe = int(exp_match.group(1))
-        else:
-            req_yoe = 0 # 没写就当 0
+        req_yoe = int(exp_match.group(1)) if exp_match else 0
         
-        if user_yoe >= req_yoe:
+        if user_yoe_is_any:
+            exp_score = 1.0  # 用户无偏好 -> 满分
+        elif user_yoe >= req_yoe:
             exp_score = 1.0
         elif user_yoe >= req_yoe - 1:
             exp_score = 0.5
@@ -132,34 +150,38 @@ def recommend_jobs(resume_text, job_list, title, location, experience):
         # --------------------------------------
         # 维度 5: 地点匹配 (Location) - 权重 10%
         # --------------------------------------
-        user_loc_pref = location.lower().strip() if location else ""
+        # [逻辑修复] 支持全称转缩写匹配 (California -> CA)
+        user_loc_raw = location.lower().strip() if location else ""
+        user_loc_abbr = STATE_MAP.get(user_loc_raw, user_loc_raw) # 比如 "california" -> "ca"
+        
+        loc_score = 0.0
         
         if "remote" in job_loc:
             loc_score = 1.0
-        elif user_loc_pref and user_loc_pref in job_loc:
-            loc_score = 1.0
-        else:
-            loc_score = 0.0
+        elif user_loc_raw and user_loc_raw in job_loc:
+            loc_score = 1.0  # 全名匹配
+        elif user_loc_abbr and user_loc_abbr != user_loc_raw:
+             # 缩写匹配逻辑 (加边界检查防止误判)
+             if f", {user_loc_abbr}" in job_loc or f",{user_loc_abbr}" in job_loc or f" {user_loc_abbr} " in job_loc:
+                 loc_score = 1.0
 
         # ==========================================
-        # 4. 最终加权公式 (Total Score)
+        # 4. [分数优化] 最终加权公式
         # ==========================================
-        combined_score = (skill_score * 0.35) + \
-                         (content_score * 0.30) + \
+        # 侧重硬技能，减少玄学语义的拖累
+        combined_score = (skill_score * 0.40) + \
+                         (content_score * 0.25) + \
                          (role_score * 0.15) + \
                          (exp_score * 0.10) + \
                          (loc_score * 0.10)
         
         final_score = float(min(1.0, combined_score))
         
-        # 打印调试信息 (保留你喜欢的调试格式)
+        # 打印调试信息
         print(f"{job['title'][:15]:<20} | {skill_score:.2f}  | {content_score:.2f}  | {role_score:.1f}  | {exp_score:.1f}  | {loc_score:.1f}  | ==> {final_score:.2f}")
 
-        # ==========================================
-        # 5. 生成智能摘要 (Smart Summary)
-        # ==========================================
+        # --- 生成摘要 ---
         if len(matched_skills) > 0:
-            # 这里的 matched_skills 是小写的，为了展示好看，可以用 .title()
             display_skills = [s.title() for s in matched_skills[:3]]
             summary = f"Skills Match ({int(skill_score*100)}%): {', '.join(display_skills)}..."
         elif content_score > 0.4:
@@ -178,13 +200,11 @@ def recommend_jobs(resume_text, job_list, title, location, experience):
             "score": round(final_score, 2),
             "summary": summary,
             "skills": job["skills"],       
-            "keywords": matched_skills[:5], # 前端高亮显示的关键词
+            "keywords": matched_skills[:5],
             "evidence_image": None,
         })
 
     print("="*80 + "\n")
 
-    # 按分数排序
     results.sort(key=lambda x: x["score"], reverse=True)
-    
     return results
