@@ -1,6 +1,7 @@
 # backend/nlp_model/tfidf_matcher.py
 
-from typing import List, Dict
+from typing import Dict, List
+
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 

@@ -8,23 +8,17 @@ Author: Renke Deng (Member A)
 Version: 1.0
 """
 
+from .resume_parser import ResumeParser, extract_resume_skills, infer_target_roles, parse_resume
 from .skills_dict import (
-    SKILL_DICT,
     SKILL_ALIASES,
-    get_all_skills,
-    normalize_skill,
-    get_skills_by_category,
+    SKILL_DICT,
     get_all_categories,
-    search_skills,
+    get_all_skills,
     get_skill_count,
-    is_valid_skill
-)
-
-from .resume_parser import (
-    ResumeParser,
-    parse_resume,
-    extract_resume_skills,
-    infer_target_roles
+    get_skills_by_category,
+    is_valid_skill,
+    normalize_skill,
+    search_skills,
 )
 
 __version__ = "1.0.0"

@@ -12,11 +12,10 @@ Author: (your name, Member C)
 
 
 
-from typing import List, Dict, Any, Optional
 import re
+from typing import Any, Dict, List, Optional
 
 from .skills_dict import get_all_skills, normalize_skill
-
 
 
 def extract_job_skills_from_description(

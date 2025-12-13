@@ -4,14 +4,18 @@ import logging
 import os
 import shutil
 import tempfile
-from fastapi import FastAPI, UploadFile, Form, File
+from typing import Annotated
+
+from fastapi import FastAPI, File, Form, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from .job_fetcher import fetch_jobs_from_api, fetch_random_jobs
-from .nlp_model_stub import recommend_jobs
 from .nlp_model.resume_parser import ResumeParser
+from .nlp_model_stub import recommend_jobs
+
+UploadedResume = Annotated[UploadFile, File(...)]
 
 logging.basicConfig(
     level=logging.INFO,
@@ -47,7 +51,7 @@ def search_jobs(title: str, location: str):
 
 @app.post("/match")
 async def match_resume(
-    file: UploadFile = File(...),
+    file: UploadedResume,
     title: str = Form(...),
     location: str = Form(...),
     experience: str = Form(...),

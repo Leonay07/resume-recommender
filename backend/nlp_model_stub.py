@@ -12,27 +12,69 @@ This module orchestrates the matching process by combining:
 Author: Integration Lead
 """
 
-import re
 import logging
+import re
+
+from .nlp_model.extract_job_skills_from_list import extract_job_skills_from_list
+
 # 使用包内部引用
 from .nlp_model.resume_parser import ResumeParser, extract_resume_skills, infer_target_roles
-from .nlp_model.extract_job_skills_from_list import extract_job_skills_from_list
 from .nlp_model.tfidf_matcher import compute_tfidf_scores
 
 logger = logging.getLogger(__name__)
 
 # [新增] 美国州名到缩写的映射字典 (用于 Location 匹配)
 STATE_MAP = {
-    "alabama": "al", "alaska": "ak", "arizona": "az", "arkansas": "ar", "california": "ca",
-    "colorado": "co", "connecticut": "ct", "delaware": "de", "florida": "fl", "georgia": "ga",
-    "hawaii": "hi", "idaho": "id", "illinois": "il", "indiana": "in", "iowa": "ia",
-    "kansas": "ks", "kentucky": "ky", "louisiana": "la", "maine": "me", "maryland": "md",
-    "massachusetts": "ma", "michigan": "mi", "minnesota": "mn", "mississippi": "ms", "missouri": "mo",
-    "montana": "mt", "nebraska": "ne", "nevada": "nv", "new hampshire": "nh", "new jersey": "nj",
-    "new mexico": "nm", "new york": "ny", "north carolina": "nc", "north dakota": "nd", "ohio": "oh",
-    "oklahoma": "ok", "oregon": "or", "pennsylvania": "pa", "rhode island": "ri", "south carolina": "sc",
-    "south dakota": "sd", "tennessee": "tn", "texas": "tx", "utah": "ut", "vermont": "vt",
-    "virginia": "va", "washington": "wa", "west virginia": "wv", "wisconsin": "wi", "wyoming": "wy"
+    "alabama": "al",
+    "alaska": "ak",
+    "arizona": "az",
+    "arkansas": "ar",
+    "california": "ca",
+    "colorado": "co",
+    "connecticut": "ct",
+    "delaware": "de",
+    "florida": "fl",
+    "georgia": "ga",
+    "hawaii": "hi",
+    "idaho": "id",
+    "illinois": "il",
+    "indiana": "in",
+    "iowa": "ia",
+    "kansas": "ks",
+    "kentucky": "ky",
+    "louisiana": "la",
+    "maine": "me",
+    "maryland": "md",
+    "massachusetts": "ma",
+    "michigan": "mi",
+    "minnesota": "mn",
+    "mississippi": "ms",
+    "missouri": "mo",
+    "montana": "mt",
+    "nebraska": "ne",
+    "nevada": "nv",
+    "new hampshire": "nh",
+    "new jersey": "nj",
+    "new mexico": "nm",
+    "new york": "ny",
+    "north carolina": "nc",
+    "north dakota": "nd",
+    "ohio": "oh",
+    "oklahoma": "ok",
+    "oregon": "or",
+    "pennsylvania": "pa",
+    "rhode island": "ri",
+    "south carolina": "sc",
+    "south dakota": "sd",
+    "tennessee": "tn",
+    "texas": "tx",
+    "utah": "ut",
+    "vermont": "vt",
+    "virginia": "va",
+    "washington": "wa",
+    "west virginia": "wv",
+    "wisconsin": "wi",
+    "wyoming": "wy",
 }
 
 def recommend_jobs(resume_text, job_list, title, location, experience):
@@ -67,14 +109,20 @@ def recommend_jobs(resume_text, job_list, title, location, experience):
     # [逻辑修复] 处理 "No preference"
     if experience and "no preference" in str(experience).lower():
         user_yoe_is_any = True
-        user_yoe = 0 
+        user_yoe = 0
     else:
         try:
             user_yoe = int(re.search(r'\d+', str(experience)).group())
-        except:
+        except (AttributeError, ValueError):
             user_yoe = 0
     
-    logger.info(f"User Parsed - Skills: {len(user_skills_set)}, Roles: {target_roles}, YoE: {user_yoe} (Any={user_yoe_is_any})")
+    logger.info(
+        "User parsed: %d skills, roles=%s, YoE=%d (any=%s)",
+        len(user_skills_set),
+        target_roles,
+        user_yoe,
+        user_yoe_is_any,
+    )
 
     # ==========================================
     # Phase 2: 解析职位数据 (Job Processing)
@@ -96,7 +144,7 @@ def recommend_jobs(resume_text, job_list, title, location, experience):
     )
     logger.debug("=" * 80)
 
-    for job, tfidf_score in zip(structured_jobs, ml_scores):
+    for job, tfidf_score in zip(structured_jobs, ml_scores, strict=False):
         
         job_title = job.get("title", "").lower()
         job_desc = job.get("description", "").lower()
@@ -153,7 +201,7 @@ def recommend_jobs(resume_text, job_list, title, location, experience):
         # --------------------------------------
         # [逻辑修复] 支持全称转缩写匹配 (California -> CA)
         user_loc_raw = location.lower().strip() if location else ""
-        user_loc_abbr = STATE_MAP.get(user_loc_raw, user_loc_raw) # 比如 "california" -> "ca"
+        user_loc_abbr = STATE_MAP.get(user_loc_raw, user_loc_raw)  # e.g., "california" -> "ca"
         
         loc_score = 0.0
         
@@ -162,9 +210,13 @@ def recommend_jobs(resume_text, job_list, title, location, experience):
         elif user_loc_raw and user_loc_raw in job_loc:
             loc_score = 1.0  # 全名匹配
         elif user_loc_abbr and user_loc_abbr != user_loc_raw:
-             # 缩写匹配逻辑 (加边界检查防止误判)
-             if f", {user_loc_abbr}" in job_loc or f",{user_loc_abbr}" in job_loc or f" {user_loc_abbr} " in job_loc:
-                 loc_score = 1.0
+            patterns = [
+                f", {user_loc_abbr}",
+                f",{user_loc_abbr}",
+                f" {user_loc_abbr} ",
+            ]
+            if any(pattern in job_loc for pattern in patterns):
+                loc_score = 1.0
 
         # ==========================================
         # 4. [分数优化] 最终加权公式

@@ -9,7 +9,7 @@ Shared with: Member C (for job scoring)
 Version: 1.0
 """
 
-from typing import List, Dict
+from typing import List
 
 # ========================================
 # Main Skills Dictionary

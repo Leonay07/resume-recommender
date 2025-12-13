@@ -1,7 +1,7 @@
+import logging
 import os
 import re
-from typing import Dict, List, Optional, Tuple
-import logging
+from typing import Dict, List, Optional
 
 # PDF parsing
 try:
@@ -21,10 +21,10 @@ except ImportError:
 
 # Import skill dictionary
 try:
-    from .skills_dict import get_all_skills, normalize_skill, SKILL_DICT
+    from .skills_dict import get_all_skills, normalize_skill
 except ImportError:
     # For standalone testing
-    from skills_dict import get_all_skills, normalize_skill, SKILL_DICT
+    from skills_dict import get_all_skills, normalize_skill
 
 # ========================================
 # Logging Configuration
@@ -343,12 +343,15 @@ class ResumeParser:
             Extracted text
         """
         if not PDF_AVAILABLE:
-            raise ImportError("pdfplumber is required for PDF parsing. Install with: pip install pdfplumber")
+            raise ImportError(
+                "pdfplumber is required for PDF parsing. "
+                "Install with: pip install pdfplumber"
+            )
 
         try:
             text = ""
             with pdfplumber.open(file_path) as pdf:
-                for page_num, page in enumerate(pdf.pages, 1):
+                for page in pdf.pages:
                     page_text = page.extract_text()
                     if page_text:
                         text += page_text + "\n"
@@ -356,8 +359,8 @@ class ResumeParser:
             logger.info(f"PDF parsed successfully: {len(text)} characters from {file_path}")
             return text.strip()
 
-        except Exception as e:
-            logger.error(f"Error parsing PDF {file_path}: {str(e)}")
+        except Exception as exc:
+            logger.error("Error parsing PDF %s: %s", file_path, exc)
             raise
 
     def _load_docx(self, file_path: str) -> str:
@@ -371,7 +374,10 @@ class ResumeParser:
             Extracted text
         """
         if not DOCX_AVAILABLE:
-            raise ImportError("python-docx is required for DOCX parsing. Install with: pip install python-docx")
+            raise ImportError(
+                "python-docx is required for DOCX parsing. "
+                "Install with: pip install python-docx"
+            )
 
         try:
             doc = Document(file_path)
@@ -391,8 +397,8 @@ class ResumeParser:
             logger.info(f"DOCX parsed successfully: {len(text)} characters from {file_path}")
             return text.strip()
 
-        except Exception as e:
-            logger.error(f"Error parsing DOCX {file_path}: {str(e)}")
+        except Exception as exc:
+            logger.error("Error parsing DOCX %s: %s", file_path, exc)
             raise
 
     # ========================================
@@ -467,7 +473,10 @@ class ResumeParser:
         meaningful_sections = [s for s in sections_found if s != 'other']
 
         if not meaningful_sections:
-            logger.warning("No section headers detected. Attempting keyword-based section detection...")
+            logger.warning(
+                "No section headers detected. "
+                "Attempting keyword-based section detection..."
+            )
             sections = self._fallback_section_detection(resume_text)
             sections_found = [k for k, v in sections.items() if v and k != 'other']
 
@@ -476,8 +485,10 @@ class ResumeParser:
         logger.info(f"Sections parsed: {list(section_counts.keys())}")
 
         if not meaningful_sections:
-            logger.warning("Could not identify distinct sections. "
-                          "Skills will be extracted from full resume text.")
+            logger.warning(
+                "Could not identify distinct sections. "
+                "Skills will be extracted from full resume text."
+            )
 
         return sections
 
@@ -555,7 +566,10 @@ class ResumeParser:
 
         # If still no skills section found, put all content in 'other'
         # This ensures extract_skills can search the full text
-        if not sections['skills'] and not any(sections[k] for k in ['experience', 'education', 'projects']):
+        has_other_sections = any(
+            sections[key] for key in ['experience', 'education', 'projects']
+        )
+        if not sections['skills'] and not has_other_sections:
             sections['other'] = resume_text
 
         return sections
@@ -650,11 +664,15 @@ class ResumeParser:
                         # Treat all skills from 'other' as secondary since
                         # we couldn't identify the Skills section
                         secondary_skills.add(normalized)
-                        skill_frequency[normalized] = skill_frequency.get(normalized, 0) + len(matches)
+                        skill_frequency[normalized] = (
+                            skill_frequency.get(normalized, 0) + len(matches)
+                        )
 
                 if secondary_skills:
-                    logger.info(f"Fallback extraction found {len(secondary_skills)} skills "
-                               "from 'other' section")
+                    logger.info(
+                        "Fallback extraction found %d skills from 'other' section",
+                        len(secondary_skills),
+                    )
 
         # Even if we found some skills, also search 'other' to ensure completeness
         # This catches cases where some content wasn't properly categorized
@@ -786,14 +804,16 @@ class ResumeParser:
                         role_scores[role] = score
 
                 if role_scores:
-                    logger.info(f"Fallback found {len(role_scores)} potential roles "
-                               "from 'other' section")
+                    logger.info(
+                        "Fallback found %d potential roles from 'other' section",
+                        len(role_scores),
+                    )
 
         # Sort roles by score and add top 3 (excluding user input if already added)
         sorted_roles = sorted(role_scores.items(),
                             key=lambda x: x[1], reverse=True)
 
-        for role, score in sorted_roles[:3]:
+        for role, _score in sorted_roles[:3]:
             if role not in target_roles:
                 target_roles.append(role)
 
@@ -1030,7 +1050,11 @@ def extract_resume_skills(resume_sections, skill_dict=None):
             else:
                 raise TypeError("skill_dict must be a dict or iterable of strings")
 
-            normalized = {normalize_skill(skill) for skill in custom_skills if isinstance(skill, str)}
+            normalized = {
+                normalize_skill(skill)
+                for skill in custom_skills
+                if isinstance(skill, str)
+            }
             if normalized:
                 parser.all_skills = sorted(normalized)
                 logger.debug(
@@ -1040,8 +1064,9 @@ def extract_resume_skills(resume_sections, skill_dict=None):
 
         except Exception as exc:
             logger.warning(
-                "Failed to apply custom skill_dict (%s). Falling back to default SKILL_DICT.",
-                exc
+                "Failed to apply custom skill_dict (%s). "
+                "Falling back to default SKILL_DICT.",
+                exc,
             )
 
     return parser.extract_skills(resume_sections)
