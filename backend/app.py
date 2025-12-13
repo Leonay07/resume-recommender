@@ -9,9 +9,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 
-from job_fetcher import fetch_jobs_from_api, fetch_random_jobs
-from nlp_model_stub import recommend_jobs
-from nlp_model.resume_parser import ResumeParser
+from .job_fetcher import fetch_jobs_from_api, fetch_random_jobs
+from .nlp_model_stub import recommend_jobs
+from .nlp_model.resume_parser import ResumeParser
 
 logging.basicConfig(
     level=logging.INFO,

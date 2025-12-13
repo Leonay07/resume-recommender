@@ -14,10 +14,10 @@ Author: Integration Lead
 
 import re
 import logging
-# 使用绝对引用
-from nlp_model.resume_parser import ResumeParser, extract_resume_skills, infer_target_roles
-from nlp_model.extract_job_skills_from_list import extract_job_skills_from_list
-from nlp_model.tfidf_matcher import compute_tfidf_scores
+# 使用包内部引用
+from .nlp_model.resume_parser import ResumeParser, extract_resume_skills, infer_target_roles
+from .nlp_model.extract_job_skills_from_list import extract_job_skills_from_list
+from .nlp_model.tfidf_matcher import compute_tfidf_scores
 
 logger = logging.getLogger(__name__)
 
