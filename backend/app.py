@@ -53,8 +53,8 @@ def search_jobs(title: str, location: str):
 async def match_resume(
     file: UploadedResume,
     title: str = Form(...),
-    location: str = Form(...),
-    experience: str = Form(...),
+    location: str = Form(""),
+    experience: str = Form(""),
 ):
     """Match a resume to jobs and return scored recommendations."""
     logger.info(
