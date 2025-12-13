@@ -36,4 +36,4 @@ services:
     volumes:
       - ./mlruns:/mlruns
     ports:
-      - "5000:5000"
+      - "5500:5000"

@@ -24,7 +24,7 @@ docker compose up --build
 Once healthy:
 - Frontend: http://localhost:5173
 - Backend API: http://localhost:8000
-- MLflow UI: http://localhost:5000
+- MLflow UI: http://localhost:5500 (port mapped to 5000 inside the container)
 
 The backend container automatically sends lightweight metrics for each `/match` call to MLflow.
 
