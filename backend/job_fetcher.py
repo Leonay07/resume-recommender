@@ -5,13 +5,16 @@ Job fetching utilities with environment variable support.
 Loads RAPID_API_KEY from .env using python-dotenv.
 """
 
-import requests
-import random
-from dotenv import load_dotenv
+import logging
 import os
+import random
+
+import requests
+from dotenv import load_dotenv
 
 # Load environment variables from .env
 load_dotenv()
+logger = logging.getLogger(__name__)
 
 RAPID_API_KEY = os.getenv("RAPID_API_KEY")
 RAPID_API_HOST = os.getenv("RAPID_API_HOST")
@@ -43,7 +46,7 @@ def fetch_jobs_from_api(title, location):
     else:
         query = title
     
-    print(f"DEBUG: API Query -> '{query}'")
+    logger.info("Fetching jobs with query '%s'", query)
 
     def get_jobs(page=1):
         params = {
@@ -57,7 +60,7 @@ def fetch_jobs_from_api(title, location):
             response = requests.get(url, headers=headers, params=params)
             return response.json().get("data", [])
         except Exception as e:
-            print(f"Error fetching API: {e}")
+            logger.exception("Error fetching jobs from API page %d: %s", page, e)
             return []
 
     job_list = []
@@ -103,8 +106,7 @@ def fetch_jobs_from_api(title, location):
 
         page += 1
 
-    print(f"DEBUG: Total jobs fetched from API: {total_fetched}")
-    print(f"DEBUG: Total unique jobs kept: {len(job_list)}")
+    logger.info("Fetched %d raw jobs and kept %d unique results.", total_fetched, len(job_list))
 
     return job_list
 
@@ -129,7 +131,8 @@ def fetch_random_jobs():
     try:
         response = requests.get(url, headers=headers, params=params)
         data = response.json().get("data", [])
-    except:
+    except Exception as err:
+        logger.exception("Failed to fetch random jobs: %s", err)
         data = []
 
     job_list = []
@@ -145,6 +148,7 @@ def fetch_random_jobs():
     # 防止样本不够报错
     sample_size = min(10, len(job_list))
     if sample_size == 0:
+        logger.warning("No jobs returned for random feed request.")
         return []
         
     return random.sample(job_list, sample_size)

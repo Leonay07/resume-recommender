@@ -1,0 +1,10 @@
+site_name: Resume Recommender Docs
+theme:
+  name: material
+nav:
+  - Overview: index.md
+  - Architecture: architecture.md
+  - Backend API: backend/api.md
+  - Model Interface: model/interface.md
+  - Deployment:
+      - Hugging Face: deployment/hf.md

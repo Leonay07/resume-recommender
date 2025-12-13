@@ -1,0 +1,45 @@
+[tool.poetry]
+name = "resume-recommender"
+version = "0.1.0"
+description = "Resume recommender FastAPI service with React frontend and NLP pipeline."
+authors = ["Resume Recommender Team <team@example.com>"]
+readme = "README.md"
+packages = [
+    { include = "backend" }
+]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+fastapi = "^0.111.0"
+uvicorn = { extras = ["standard"], version = "^0.30.0" }
+requests = "^2.32.0"
+python-dotenv = "^1.0.1"
+python-multipart = "^0.0.9"
+pdfplumber = "^0.10.3"
+python-docx = "^1.1.0"
+scikit-learn = "^1.4.2"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.4.8"
+pytest = "^8.2.2"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+select = [
+    "E",
+    "F",
+    "B",
+    "I",
+]
+ignore = [
+    "E203",
+]
+
+[tool.ruff.isort]
+combine-as-imports = true
+known-first-party = ["backend"]
+
+[build-system]
+requires = ["poetry-core>=1.8.0"]
+build-backend = "poetry.core.masonry.api"

@@ -19,8 +19,6 @@ from nlp_model.resume_parser import ResumeParser, extract_resume_skills, infer_t
 from nlp_model.extract_job_skills_from_list import extract_job_skills_from_list
 from nlp_model.tfidf_matcher import compute_tfidf_scores
 
-# 设置日志
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # [新增] 美国州名到缩写的映射字典 (用于 Location 匹配)
@@ -91,9 +89,12 @@ def recommend_jobs(resume_text, job_list, title, location, experience):
     # Phase 3: 循环打分 (Scoring Loop)
     # ==========================================
     
-    print("\n" + "="*80)
-    print(f"{'Job Title':<20} | Skill | Seman | Role | Exp  | Loc  | ==> Final")
-    print("="*80)
+    logger.debug("=" * 80)
+    logger.debug(
+        "%-20s | Skill | Seman | Role | Exp  | Loc  | ==> Final",
+        "Job Title",
+    )
+    logger.debug("=" * 80)
 
     for job, tfidf_score in zip(structured_jobs, ml_scores):
         
@@ -178,7 +179,16 @@ def recommend_jobs(resume_text, job_list, title, location, experience):
         final_score = float(min(1.0, combined_score))
         
         # 打印调试信息
-        print(f"{job['title'][:15]:<20} | {skill_score:.2f}  | {content_score:.2f}  | {role_score:.1f}  | {exp_score:.1f}  | {loc_score:.1f}  | ==> {final_score:.2f}")
+        logger.debug(
+            "%-20s | %.2f  | %.2f  | %.1f  | %.1f  | %.1f  | ==> %.2f",
+            job["title"][:15],
+            skill_score,
+            content_score,
+            role_score,
+            exp_score,
+            loc_score,
+            final_score,
+        )
 
         # --- 生成摘要 ---
         if len(matched_skills) > 0:
@@ -204,7 +214,7 @@ def recommend_jobs(resume_text, job_list, title, location, experience):
             "evidence_image": None,
         })
 
-    print("="*80 + "\n")
+    logger.debug("=" * 80)
 
     results.sort(key=lambda x: x["score"], reverse=True)
     return results
