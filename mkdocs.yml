@@ -8,3 +8,4 @@ nav:
   - Model Interface: model/interface.md
   - Deployment:
       - Hugging Face: deployment/hf.md
+      - Docker Compose: deployment/compose.md

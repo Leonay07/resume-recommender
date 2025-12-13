@@ -13,15 +13,20 @@ Author: Integration Lead
 """
 
 import logging
+import os
 import re
+import time
+
+import requests
 
 from .nlp_model.extract_job_skills_from_list import extract_job_skills_from_list
-
-# 使用包内部引用
 from .nlp_model.resume_parser import ResumeParser, extract_resume_skills, infer_target_roles
 from .nlp_model.tfidf_matcher import compute_tfidf_scores
 
 logger = logging.getLogger(__name__)
+
+MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI")
+MLFLOW_EXPERIMENT_NAME = os.getenv("MLFLOW_EXPERIMENT_NAME", "resume_recommender")
 
 # [新增] 美国州名到缩写的映射字典 (用于 Location 匹配)
 STATE_MAP = {
@@ -269,4 +274,81 @@ def recommend_jobs(resume_text, job_list, title, location, experience):
     logger.debug("=" * 80)
 
     results.sort(key=lambda x: x["score"], reverse=True)
+    log_recommendation_run(job_list, results, target_roles, title, location)
     return results
+
+
+def log_recommendation_run(job_list, results, target_roles, title, location):
+    """Record lightweight experiment metrics in MLflow via REST, if configured."""
+    if not MLFLOW_TRACKING_URI:
+        return
+    try:
+        experiment_id = _ensure_experiment(MLFLOW_EXPERIMENT_NAME)
+        if not experiment_id:
+            return
+        run_id = _create_run(experiment_id)
+        if not run_id:
+            return
+        params = {
+            "query_title": title or "",
+            "query_location": location or "",
+            "target_roles": ",".join(target_roles) if target_roles else "",
+        }
+        metrics = {
+            "jobs_fetched": len(job_list),
+            "jobs_returned": len(results),
+        }
+        if results:
+            avg_score = sum(job["score"] for job in results) / len(results)
+            metrics["avg_recommendation_score"] = avg_score
+
+        for key, value in params.items():
+            _mlflow_post(
+                "runs/log-parameter",
+                {"run_id": run_id, "key": key, "value": value},
+            )
+        timestamp = int(time.time() * 1000)
+        for key, value in metrics.items():
+            _mlflow_post(
+                "runs/log-metric",
+                {"run_id": run_id, "key": key, "value": value, "timestamp": timestamp},
+            )
+        _mlflow_post("runs/update", {"run_id": run_id, "status": "FINISHED"})
+    except requests.RequestException as exc:
+        logger.debug("Skipping MLflow logging: %s", exc)
+def _ensure_experiment(name: str) -> str | None:
+    """Return an experiment_id, creating the experiment if required."""
+    try:
+        response = requests.get(
+            f"{MLFLOW_TRACKING_URI}/api/2.0/mlflow/experiments/get-by-name",
+            params={"experiment_name": name},
+            timeout=5,
+        )
+        if response.status_code == 200:
+            return response.json()["experiment"]["experiment_id"]
+    except requests.RequestException:
+        return None
+
+    create_resp = _mlflow_post("experiments/create", {"name": name})
+    if create_resp:
+        return create_resp.get("experiment_id")
+    return None
+
+
+def _create_run(experiment_id: str) -> str | None:
+    payload = {
+        "experiment_id": experiment_id,
+        "start_time": int(time.time() * 1000),
+        "tags": [{"key": "source", "value": "resume_recommender"}],
+    }
+    response = _mlflow_post("runs/create", payload)
+    if response:
+        return response["run"]["info"]["run_id"]
+    return None
+
+
+def _mlflow_post(path: str, payload: dict) -> dict | None:
+    url = f"{MLFLOW_TRACKING_URI}/api/2.0/mlflow/{path}"
+    response = requests.post(url, json=payload, timeout=5)
+    response.raise_for_status()
+    return response.json()

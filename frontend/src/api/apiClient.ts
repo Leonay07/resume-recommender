@@ -1,8 +1,7 @@
 // frontend/src/api/apiClient.ts
 // API client — configure backend base URL here
 
-// For local development:
-const BASE_URL = "http://localhost:8000";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
 // Later for deployment (HuggingFace Space):
 // const BASE_URL = "https://your-hf-space-url.hf.space";

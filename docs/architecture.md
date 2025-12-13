@@ -30,6 +30,8 @@ From `00_development_sequence.md`:
 - **Parsing strategy**: ResumeParser supports pdfplumber/python-docx, detects sections via multi-level keywords, and shares the skill dictionary across resumes/JDs.
 - **Recommendation logic**: five weighted factors (skills 40% + TF–IDF 25% + intent 15% + experience 10% + location 10%) with human-readable summaries.
 - **Caching/pagination**: persist recommendations to `cache.json` so `/match/more` can serve additional pages without recomputation.
+- **Microservices**: `docker-compose.yml` orchestrates three containers—frontend, backend, and MLflow—so each concern can scale independently.
+- **Experiment tracking**: the backend logs lightweight metrics (jobs fetched, average scores, intent roles) to MLflow; the Compose stack exposes the UI on port 5000.
 
 ## Dependency Table
 | Order | Module | Inputs | Outputs |
