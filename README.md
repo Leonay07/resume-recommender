@@ -25,7 +25,7 @@ chmod +x setup_local.sh   # 仅首次需要
 ./setup_local.sh
 ```
 
-- 后端会在 `backend/.venv` 中创建虚拟环境，并安装 `requirements.txt`
+- 脚本会调用 Poetry，在根目录创建 `.venv` 并安装后端依赖
 - 前端在 `frontend/` 目录执行 `npm install`
 
 ---
@@ -36,9 +36,7 @@ chmod +x setup_local.sh   # 仅首次需要
 
 1. **后端（FastAPI + mock NLP）**
    ```bash
-   cd backend
-   source .venv/bin/activate
-   uvicorn app:app --reload --port 8000
+   poetry run uvicorn backend.app:app --reload --port 8000
    ```
 2. **前端（Vite 开发服务器）**
    ```bash
