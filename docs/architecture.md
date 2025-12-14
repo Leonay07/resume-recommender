@@ -14,14 +14,14 @@
 ```
 - **Frontend** renders React routes, posts multipart forms, and fetches `/jobs/random`, `/jobs/search`, `/match`, `/match/more`.
 - **Backend** (`backend/app.py`) manages uploads, temporary storage, static assets, and caches recommendations. It calls `job_fetcher.py` for RapidAPI requests and `nlp_model_stub.py` for scoring.
-- **NLP Layer** leverages `nlp_model/resume_parser.py`, `skills_dict.py`, `extract_job_skills_from_list.py`, and `tfidf_matcher.py`.
+- **ML Layer** leverages `nlp_model/resume_parser.py`, `skills_dict.py`, `extract_job_skills_from_list.py`, and `tfidf_matcher.py`.
 - **Data Layer** relies on live RapidAPI responses; the only on-disk artifacts are transient temp files and `cache.json`. Configuration comes from `backend/.env` or environment variables.
 
 ## Runtime Flow
 1. **Upload** – the frontend sends a multipart request to `/match` containing the resume file and form inputs.
 2. **Resume Parsing** – `ResumeParser` detects sections (skills/experience/education/projects/summary), extracts skills, and infers target roles.
 3. **Job Fetching** – `fetch_jobs_from_api` builds a “title in location” query, loops up to 3 pages, deduplicates `(title, company)`, and retains essential metadata.
-4. **Hybrid Scoring** – `recommend_jobs` calculates:
+4. **Hybrid Scoring** – `recommend_jobs` calculates: 
    - skill overlap (40% weight),
    - TF–IDF similarity (25%),
    - role intent match (15%),

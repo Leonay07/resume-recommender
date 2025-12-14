@@ -1,4 +1,4 @@
-site_name: Resume Recommender Docs
+site_name: Job Recommendation System Design Docs
 theme:
   name: material
 nav:
