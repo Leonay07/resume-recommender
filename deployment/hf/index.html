@@ -662,11 +662,11 @@
 </ul>
 <h2 id="pre-deployment-checklist">Pre-deployment Checklist</h2>
 <ul>
-<li>[ ] <code>backend/.env</code> already包含 <code>RAPID_API_KEY</code> 与 <code>RAPID_API_HOST</code></li>
-<li>[ ] 本地运行 <code>poetry run ruff check .</code>、<code>poetry run pytest</code> 均通过</li>
-<li>[ ] 使用 <code>docker compose up --build</code> 本地验证（可选，确保前后端、MLflow 都正常）</li>
-<li>[ ] Hugging Face Space 选择 <em>Docker</em> 运行环境，并在 “Secrets” 中配置 <code>RAPID_API_KEY</code></li>
-<li>[ ] <code>huggingface.yaml</code> 位于仓库根目录</li>
+<li>[ ] <code>backend/.env</code> contains <code>RAPID_API_KEY</code> and <code>RAPID_API_HOST</code></li>
+<li>[ ] <code>poetry run ruff check .</code> and <code>poetry run pytest</code> pass locally</li>
+<li>[ ] <code>docker compose up --build</code> verified locally (optional but recommended)</li>
+<li>[ ] Hugging Face Space uses the <em>Docker</em> runtime and Secrets include <code>RAPID_API_KEY</code></li>
+<li>[ ] <code>huggingface.yaml</code> exists at the repo root</li>
 </ul>
 <h2 id="build-run">Build &amp; Run</h2>
 <pre><code class="language-bash"># Local verification
