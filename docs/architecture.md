@@ -27,11 +27,10 @@
    - Role intent match (15%)
    - Experience alignment (10%)
    - Location or remote allowance (10%)
-
    **Output:** ranked scores, short summaries, keyword highlights, and direct apply links.
-
 5. **Caching** – results persist in `cache.json` so `/match/more` can stream the remainder without recomputing.
 6. **Explainability & Logging** – debug logs print per-job scores, and when `MLFLOW_TRACKING_URI` is set, metrics are pushed to MLflow.
+
 
 ## Key Design Choices
 - **Secure uploads** – use `tempfile.NamedTemporaryFile` and delete files immediately after parsing.

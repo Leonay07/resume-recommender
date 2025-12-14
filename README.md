@@ -10,7 +10,7 @@
 
 ## Overview
 
-This project ingests a user’s PDF/DOCX resume, fetches fresh job listings from RapidAPI’s JSearch feed, and ranks them with a hybrid scoring model (skills overlap, TF–IDF similarity, intent, experience, location). The stack comprises:
+This project input a user’s PDF/DOCX resume, fetches fresh job listings from RapidAPI’s JSearch feed, and ranks them with a hybrid scoring model (skills overlap, TF–IDF similarity, intent, experience, location). The stack comprises:
 
 - **Frontend:** React + Vite + TypeScript with routed pages (Landing, Search, Result, Job Detail). API endpoints are configurable via `VITE_API_BASE_URL`.
 - **Backend:** FastAPI service handling file uploads, resume parsing (pdfplumber + python-docx), RapidAPI calls, hybrid recommender, caching for “Load More,” and optional MLflow experiment logging.
@@ -118,14 +118,3 @@ More details: `docs/deployment/hf.md` and `docs/deployment/compose.md`.
 
 ---
 
-## Deliverables Checklist
-
-- [x] FastAPI backend with documented endpoints + docstrings/logging.
-- [x] React/Vite frontend consuming the API via configurable base URL.
-- [x] Docker Compose microservices + single Dockerfile for Hugging Face.
-- [x] Experiment tracking (MLflow REST logging) and documented usage.
-- [x] Static documentation (MkDocs) and final discussion PDF.
-- [x] Testing + linting + GitHub Actions CI.
-- [ ] README items pending: team roster, architecture diagram image, docs link, live demo URL, screenshots (optional).
-
-Fill in the TODOs above to finalize the documentation for submission.
