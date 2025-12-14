@@ -23,7 +23,7 @@
     
     
       
-        <title>Architecture - Resume Recommender Docs</title>
+        <title>Architecture - Job Recommendation System Design Docs</title>
       
     
     
@@ -80,7 +80,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href=".." title="Resume Recommender Docs" class="md-header__button md-logo" aria-label="Resume Recommender Docs" data-md-component="logo">
+    <a href=".." title="Job Recommendation System Design Docs" class="md-header__button md-logo" aria-label="Job Recommendation System Design Docs" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -94,7 +94,7 @@
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            Resume Recommender Docs
+            Job Recommendation System Design Docs
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
@@ -178,13 +178,13 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="Resume Recommender Docs" class="md-nav__button md-logo" aria-label="Resume Recommender Docs" data-md-component="logo">
+    <a href=".." title="Job Recommendation System Design Docs" class="md-nav__button md-logo" aria-label="Job Recommendation System Design Docs" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
 
     </a>
-    Resume Recommender Docs
+    Job Recommendation System Design Docs
   </label>
   
   <ul class="md-nav__list" data-md-scrollfix>
@@ -622,7 +622,7 @@
 <ul>
 <li><strong>Frontend</strong> renders React routes, posts multipart forms, and fetches <code>/jobs/random</code>, <code>/jobs/search</code>, <code>/match</code>, <code>/match/more</code>.</li>
 <li><strong>Backend</strong> (<code>backend/app.py</code>) manages uploads, temporary storage, static assets, and caches recommendations. It calls <code>job_fetcher.py</code> for RapidAPI requests and <code>nlp_model_stub.py</code> for scoring.</li>
-<li><strong>NLP Layer</strong> leverages <code>nlp_model/resume_parser.py</code>, <code>skills_dict.py</code>, <code>extract_job_skills_from_list.py</code>, and <code>tfidf_matcher.py</code>.</li>
+<li><strong>ML Layer</strong> leverages <code>nlp_model/resume_parser.py</code>, <code>skills_dict.py</code>, <code>extract_job_skills_from_list.py</code>, and <code>tfidf_matcher.py</code>.</li>
 <li><strong>Data Layer</strong> relies on live RapidAPI responses; the only on-disk artifacts are transient temp files and <code>cache.json</code>. Configuration comes from <code>backend/.env</code> or environment variables.</li>
 </ul>
 <h2 id="runtime-flow">Runtime Flow</h2>
@@ -630,7 +630,7 @@
 <li><strong>Upload</strong> – the frontend sends a multipart request to <code>/match</code> containing the resume file and form inputs.</li>
 <li><strong>Resume Parsing</strong> – <code>ResumeParser</code> detects sections (skills/experience/education/projects/summary), extracts skills, and infers target roles.</li>
 <li><strong>Job Fetching</strong> – <code>fetch_jobs_from_api</code> builds a “title in location” query, loops up to 3 pages, deduplicates <code>(title, company)</code>, and retains essential metadata.</li>
-<li><strong>Hybrid Scoring</strong> – <code>recommend_jobs</code> calculates:</li>
+<li><strong>Hybrid Scoring</strong> – <code>recommend_jobs</code> calculates: </li>
 <li>skill overlap (40% weight),</li>
 <li>TF–IDF similarity (25%),</li>
 <li>role intent match (15%),</li>

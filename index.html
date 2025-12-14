@@ -21,7 +21,7 @@
     
     
       
-        <title>Resume Recommender Docs</title>
+        <title>Job Recommendation System Design Docs</title>
       
     
     
@@ -78,7 +78,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="." title="Resume Recommender Docs" class="md-header__button md-logo" aria-label="Resume Recommender Docs" data-md-component="logo">
+    <a href="." title="Job Recommendation System Design Docs" class="md-header__button md-logo" aria-label="Job Recommendation System Design Docs" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -92,7 +92,7 @@
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            Resume Recommender Docs
+            Job Recommendation System Design Docs
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
@@ -176,13 +176,13 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="." title="Resume Recommender Docs" class="md-nav__button md-logo" aria-label="Resume Recommender Docs" data-md-component="logo">
+    <a href="." title="Job Recommendation System Design Docs" class="md-nav__button md-logo" aria-label="Job Recommendation System Design Docs" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
 
     </a>
-    Resume Recommender Docs
+    Job Recommendation System Design Docs
   </label>
   
   <ul class="md-nav__list" data-md-scrollfix>
@@ -585,7 +585,7 @@
 
 <h1 id="project-overview">Project Overview</h1>
 <h2 id="goal">Goal</h2>
-<p>Resume Recommender helps job seekers discover relevant roles by comparing their resume against live job listings. Users upload a PDF/DOCX resume, specify optional search preferences, and receive explainable recommendations. The project delivers an end‑to‑end demo deployed on Hugging Face Spaces and a microservice stack runnable via Docker Compose.</p>
+<p>This system helps job seekers discover relevant roles by comparing their resume against live job listings. Users upload a PDF/DOCX resume, specify optional search preferences, and receive explainable recommendations. The project delivers an end‑to‑end system deployed on Hugging Face Spaces and a microservice stack runnable via Docker Compose.</p>
 <h2 id="system-components">System Components</h2>
 <table>
 <thead>
@@ -607,14 +607,9 @@
 <td>Handles file uploads, RapidAPI requests, resume parsing, scoring, caching, and static assets.</td>
 </tr>
 <tr>
-<td>NLP</td>
+<td>ML</td>
 <td>ResumeParser + TF–IDF + heuristic engine</td>
 <td>Extracts skills/intent and scores jobs across five weighted dimensions.</td>
-</tr>
-<tr>
-<td>Experiment Tracking</td>
-<td>MLflow (optional)</td>
-<td>Logs query metadata and scores when <code>MLFLOW_TRACKING_URI</code> is configured.</td>
 </tr>
 </tbody>
 </table>
@@ -623,7 +618,7 @@
 <li><strong>Upload &amp; Preferences</strong> – the user uploads a PDF/DOCX resume and optionally sets title, location, and experience preferences.</li>
 <li><strong>Resume Parsing</strong> – FastAPI writes the file to a temp path and <code>ResumeParser</code> extracts text, sections, skills, and inferred intent.</li>
 <li><strong>Job Fetching</strong> – <code>job_fetcher</code> calls RapidAPI’s JSearch endpoint, paginates up to three pages, deduplicates <code>(title, company)</code>, and returns descriptions with apply links.</li>
-<li><strong>Hybrid Scoring</strong> – <code>nlp_model_stub.recommend_jobs</code> combines skill overlap, TF–IDF similarity, role intent, experience alignment, and location match to produce weighted scores and human-readable summaries.</li>
+<li><strong>Hybrid Scoring</strong> – <code>nlp_model_stub.recommend_jobs</code> combines skill overlap, TF–IDF similarity, role intent, experience alignment, and location match to produce weighted scores and readable summaries.</li>
 <li><strong>Caching &amp; Pagination</strong> – the ranked list is cached in <code>backend/cache.json</code>; <code>/match</code> returns the top 10 while <code>/match/more</code> streams the remainder to the frontend.</li>
 <li><strong>Visualization</strong> – React/Vite displays job cards, highlights overlapping skills, and surfaces apply links. Requests can be re-run with different parameters without restarting the API.</li>
 </ol>
