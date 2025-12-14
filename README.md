@@ -17,7 +17,14 @@ This project input a user’s PDF/DOCX resume, fetches fresh job listings from R
 - **Tooling:** MkDocs documentation, pytest suite, Ruff linting, and GitHub Actions CI (`.github/workflows/ci.yml`) that runs lint + tests on every push/PR.
 
 ### System Architecture
-`TODO – insert architecture diagram path or image`
+
+![System Architecture Diagram](plots/systemoverview.png)
+
+*Figure: High-level system architecture showing frontend, backend, external APIs, and supporting services.*
+
+![System Architecture Diagram](plots/nlppipeline.png)
+
+*Figure: Hybrid NLP and rule-based matching pipeline used for job recommendation.*
 
 ---
 
@@ -151,7 +158,7 @@ http://127.0.0.1:5173
 
 ### Results Page
 
-![Results Page](plots/landing.png)
+![Results Page](plots/ResultsPage.png)
 
 ### Job Card Page
-![Job Card](plots/landing.png)
+![Job Card](plots/JobCardPage.png)
