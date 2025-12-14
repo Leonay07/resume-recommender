@@ -23,7 +23,7 @@ This project input a user’s PDF/DOCX resume, fetches fresh job listings from R
 
 ## Quickstart
 
-Pick whichever workflow you need. Both require a RapidAPI JSearch key stored in `backend/.env`.
+Pick whichever workflow you need. Both require a RapidAPI JSearch key stored in `backend/.env`. If this file does not exist, please create it manually before starting the services.
 
 ### Configure RapidAPI Key
 ```
@@ -46,6 +46,9 @@ Once started, the following services will be available:
 | frontend | http://localhost:5173 | Vite build served via `serve`.           |
 | backend  | http://localhost:8000 | FastAPI API + static assets.            |
 | mlflow   | http://localhost:5500 | Tracks metrics when `MLFLOW_TRACKING_URI` is set. |
+
+Note: This project is primarily accessed via the frontend UI.
+Please open the frontend URL to explore and interact with the application.
 
 To stop and clean up all containers:
 
@@ -124,3 +127,18 @@ http://127.0.0.1:5173
 | `discussion.pdf` | Final analysis report. |
 
 ---
+
+## Application Preview
+
+### Landing Page
+![Landing Page](plots/LandingPage.png)
+
+### Home Page
+![Home Page](plots/HomePage.png)
+
+### Search Page
+![Search Page](plots/SearchPage.png)
+
+### Results Page
+![Home Page](plots/landing.png)
+
