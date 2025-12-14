@@ -6,11 +6,11 @@
 - Keep port 7860 exposed for the React application.
 
 ## Pre-deployment Checklist
-- [ ] `backend/.env` already包含 `RAPID_API_KEY` 与 `RAPID_API_HOST`
-- [ ] 本地运行 `poetry run ruff check .`、`poetry run pytest` 均通过
-- [ ] 使用 `docker compose up --build` 本地验证（可选，确保前后端、MLflow 都正常）
-- [ ] Hugging Face Space 选择 *Docker* 运行环境，并在 “Secrets” 中配置 `RAPID_API_KEY`
-- [ ] `huggingface.yaml` 位于仓库根目录
+- [ ] `backend/.env` contains `RAPID_API_KEY` and `RAPID_API_HOST`
+- [ ] `poetry run ruff check .` and `poetry run pytest` pass locally
+- [ ] `docker compose up --build` verified locally (optional but recommended)
+- [ ] Hugging Face Space uses the *Docker* runtime and Secrets include `RAPID_API_KEY`
+- [ ] `huggingface.yaml` exists at the repo root
 
 ## Build & Run
 ```bash

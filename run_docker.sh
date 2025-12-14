@@ -13,7 +13,7 @@ docker build -t "${IMAGE_NAME}" "$ROOT_DIR"
 echo "✅ Build completed."
 
 if [ ! -f "$ROOT_DIR/backend/.env" ]; then
-  echo "⚠️  未找到 backend/.env，容器会缺少 RAPID_API_KEY/RAPID_API_HOST。"
+  echo "⚠️  backend/.env not found; RAPID_API_KEY/RAPID_API_HOST will be missing."
 fi
 
 echo "👉 Starting container on port ${PORT}..."

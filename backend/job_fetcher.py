@@ -39,8 +39,7 @@ def fetch_jobs_from_api(title, location):
 
     effective_location = (location or "").strip()
     
-    # 构建查询语句，让 API 帮我们做精准匹配
-    # 例如: "Data Scientist in Virginia"
+    # Build a query so the API handles precise matching (e.g., "Data Scientist in Virginia").
     if effective_location:
         query = f"{title} in {effective_location}"
     else:
@@ -66,7 +65,7 @@ def fetch_jobs_from_api(title, location):
     job_list = []
     seen_keys = set()
     
-    # 统计数据，方便调试
+    # Debug counters
     total_fetched = 0
 
     page = 1
@@ -78,15 +77,13 @@ def fetch_jobs_from_api(title, location):
         total_fetched += len(data)
 
         for j in data:
-            # 获取原始字段
+            # Extract raw fields
             job_title_raw = j.get("job_title", "Unknown Title")
             employer = j.get("employer_name", "Unknown Company")
             
-            # --- [核心修改] 移除 Python 端的过滤器 ---
-            # 只要 API 觉得这个职位符合 "Data Scientist in VA"，我们就收录。
-            # 不再手动检查 "va" 是否包含在 location 字符串里，防止误杀 "Virginia"。
+            # Remove client-side filtering; rely on API query to avoid accidental drops.
             
-            # 唯一做的过滤是：去重 (同一个公司发的同一个职位)
+            # Deduplicate by title/company
             key = (job_title_raw.lower(), employer.lower())
             if key in seen_keys:
                 continue
@@ -100,7 +97,7 @@ def fetch_jobs_from_api(title, location):
             })
             seen_keys.add(key)
 
-        # 如果凑够了数量就停
+        # Stop once enough unique jobs are collected
         if len(job_list) >= MIN_RESULTS:
             break
 
@@ -123,7 +120,7 @@ def fetch_random_jobs():
     }
 
     params = {
-        "query": "Data Scientist", # 稍微具体一点，不然搜 "jobs" 出来的太杂
+        "query": "Data Scientist", # more specific than generic "jobs"
         "num_pages": 1,
         "date_posted": "month",
     }
@@ -145,7 +142,7 @@ def fetch_random_jobs():
             "apply_link": j.get("job_apply_link"),
         })
     
-    # 防止样本不够报错
+    # Guard against empty results
     sample_size = min(10, len(job_list))
     if sample_size == 0:
         logger.warning("No jobs returned for random feed request.")

@@ -66,7 +66,7 @@ async def match_resume(
         location or "",
         experience or "",
     )
-    # --- Step 1: 安全处理文件上传 ---
+    # --- Step 1: safely handle file upload ---
     suffix = os.path.splitext(file.filename)[1]
     
     with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
@@ -74,7 +74,7 @@ async def match_resume(
         tmp_path = tmp.name
 
     try:
-        # --- Step 2: 提取文本 ---
+        # --- Step 2: extract text from resume ---
         parser = ResumeParser()
         try:
             resume_text = parser.load_resume(tmp_path)
@@ -85,10 +85,10 @@ async def match_resume(
         if os.path.exists(tmp_path):
             os.remove(tmp_path)
 
-    # --- Step 3: 抓取职位 ---
+    # --- Step 3: fetch job postings ---
     job_list = fetch_jobs_from_api(title, location or "")
 
-    # --- Step 4: 五维打分 ---
+    # --- Step 4: score jobs across five dimensions ---
     results = recommend_jobs(
         resume_text,
         job_list,
@@ -97,7 +97,7 @@ async def match_resume(
         experience or "",
     )
 
-    # --- Step 5: 保存并返回 ---
+    # --- Step 5: cache results and return ---
     with CACHE_PATH.open("w", encoding="utf-8") as f:
         json.dump(results, f)
 

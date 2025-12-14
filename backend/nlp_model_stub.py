@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI")
 MLFLOW_EXPERIMENT_NAME = os.getenv("MLFLOW_EXPERIMENT_NAME", "resume_recommender")
 
-# [新增] 美国州名到缩写的映射字典 (用于 Location 匹配)
+# Mapping of U.S. state names to abbreviations (used for location matching)
 STATE_MAP = {
     "alabama": "al",
     "alaska": "ak",
@@ -87,31 +87,31 @@ def recommend_jobs(resume_text, job_list, title, location, experience):
     Main recommendation function implementing the 5-Dimensional Scoring System.
     """
     
-    # 1. [安全检查] 如果 API 没抓到职位，直接返回空
+    # Return early if no jobs were fetched
     if not job_list:
         return []
 
     # ==========================================
-    # Phase 1: 解析用户数据 (User Profiling)
+    # Phase 1: user profiling
     # ==========================================
     logger.info("Starting user profile parsing...")
     parser = ResumeParser()
     sections = parser.parse_sections(resume_text)
 
-    # A. 提取用户技能 (User Skills)
+    # Extract skills from resume sections
     skills_result = extract_resume_skills(sections)
     extracted_skills = skills_result.get('all_skills', [])
-    # 转为小写集合
+    # Normalize to lowercase set
     user_skills_set = {s.lower().strip() for s in extracted_skills}
 
-    # B. 推断目标角色 (User Intent)
+    # Infer user intent / target roles
     target_roles = infer_target_roles(sections, title)
 
-    # C. 解析用户经验 (User Experience)
+    # Parse years of experience
     user_yoe_is_any = False
     user_yoe = 0
     
-    # [逻辑修复] 处理 "No preference"
+    # Handle "No preference" inputs
     if experience and "no preference" in str(experience).lower():
         user_yoe_is_any = True
         user_yoe = 0
@@ -130,7 +130,7 @@ def recommend_jobs(resume_text, job_list, title, location, experience):
     )
 
     # ==========================================
-    # Phase 2: 解析职位数据 (Job Processing)
+    # Phase 2: process job data
     # ==========================================
     
     structured_jobs = extract_job_skills_from_list(job_list)
@@ -139,7 +139,7 @@ def recommend_jobs(resume_text, job_list, title, location, experience):
     results = []
 
     # ==========================================
-    # Phase 3: 循环打分 (Scoring Loop)
+    # Phase 3: scoring loop
     # ==========================================
     
     logger.debug("=" * 80)
@@ -156,7 +156,7 @@ def recommend_jobs(resume_text, job_list, title, location, experience):
         job_loc = job.get("location", "").lower()
 
         # --------------------------------------
-        # 维度 1: 技能匹配 (Skills) - 权重 40% (提升权重)
+        # Dimension 1: skill overlap (40%)
         # --------------------------------------
         raw_job_skills = job.get("skills", {}).get("all_skills", [])
         job_skills_set = {s.lower().strip() for s in raw_job_skills}
@@ -164,21 +164,19 @@ def recommend_jobs(resume_text, job_list, title, location, experience):
         matched_skills_set = user_skills_set.intersection(job_skills_set)
         matched_skills = list(matched_skills_set)
         
-        # [分数优化] 设置分母上限。只要命中 7 个核心技能就算满分。
-        # 防止 JD 堆砌 30 个技能导致分数过低。
+        # Cap denominator at 7 to avoid penalizing long job descriptions.
         denom = min(len(job_skills_set), 7)
-        denom = max(denom, 1) # 防止除以0
+        denom = max(denom, 1)
         
         skill_score = min(1.0, len(matched_skills) / denom)
 
         # --------------------------------------
-        # 维度 2: 语义匹配 (TF-IDF) - 权重 25% (降低权重，放大数值)
+        # Dimension 2: semantic (TF-IDF, 25%) multiplied by 3
         # --------------------------------------
-        # [分数优化] TF-IDF 原始分通常在 0.1~0.3，我们给它乘以 3.0 的倍率
         content_score = min(1.0, tfidf_score * 3.0)
 
         # --------------------------------------
-        # 维度 3: 职位意图 (Role) - 权重 15%
+        # Dimension 3: role intent match (15%)
         # --------------------------------------
         role_score = 0.0
         for role in target_roles:
@@ -187,13 +185,13 @@ def recommend_jobs(resume_text, job_list, title, location, experience):
                 break
         
         # --------------------------------------
-        # 维度 4: 经验匹配 (Experience) - 权重 10%
+        # Dimension 4: experience alignment (10%)
         # --------------------------------------
         exp_match = re.search(r'(\d+)\+?\s*years?', job_desc)
         req_yoe = int(exp_match.group(1)) if exp_match else 0
         
         if user_yoe_is_any:
-            exp_score = 1.0  # 用户无偏好 -> 满分
+            exp_score = 1.0
         elif user_yoe >= req_yoe:
             exp_score = 1.0
         elif user_yoe >= req_yoe - 1:
@@ -202,9 +200,9 @@ def recommend_jobs(resume_text, job_list, title, location, experience):
             exp_score = 0.0
 
         # --------------------------------------
-        # 维度 5: 地点匹配 (Location) - 权重 10%
+        # Dimension 5: location match (10%)
+        # Supports full names and state abbreviations (e.g., California -> CA)
         # --------------------------------------
-        # [逻辑修复] 支持全称转缩写匹配 (California -> CA)
         user_loc_raw = location.lower().strip() if location else ""
         user_loc_abbr = STATE_MAP.get(user_loc_raw, user_loc_raw)  # e.g., "california" -> "ca"
         
@@ -213,7 +211,7 @@ def recommend_jobs(resume_text, job_list, title, location, experience):
         if "remote" in job_loc:
             loc_score = 1.0
         elif user_loc_raw and user_loc_raw in job_loc:
-            loc_score = 1.0  # 全名匹配
+            loc_score = 1.0
         elif user_loc_abbr and user_loc_abbr != user_loc_raw:
             patterns = [
                 f", {user_loc_abbr}",
@@ -224,9 +222,8 @@ def recommend_jobs(resume_text, job_list, title, location, experience):
                 loc_score = 1.0
 
         # ==========================================
-        # 4. [分数优化] 最终加权公式
+        # Weighted combination (emphasize hard skills)
         # ==========================================
-        # 侧重硬技能，减少玄学语义的拖累
         combined_score = (skill_score * 0.40) + \
                          (content_score * 0.25) + \
                          (role_score * 0.15) + \
@@ -235,7 +232,7 @@ def recommend_jobs(resume_text, job_list, title, location, experience):
         
         final_score = float(min(1.0, combined_score))
         
-        # 打印调试信息
+        # Debug logging
         logger.debug(
             "%-20s | %.2f  | %.2f  | %.1f  | %.1f  | %.1f  | ==> %.2f",
             job["title"][:15],
@@ -247,7 +244,7 @@ def recommend_jobs(resume_text, job_list, title, location, experience):
             final_score,
         )
 
-        # --- 生成摘要 ---
+        # Generate summary text
         if len(matched_skills) > 0:
             display_skills = [s.title() for s in matched_skills[:3]]
             summary = f"Skills Match ({int(skill_score*100)}%): {', '.join(display_skills)}..."
