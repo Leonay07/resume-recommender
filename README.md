@@ -26,12 +26,19 @@ This project input a user’s PDF/DOCX resume, fetches fresh job listings from R
 Pick whichever workflow you need. Both require a RapidAPI JSearch key stored in `backend/.env`. If this file does not exist, please create it manually before starting the services.
 
 ### Configure RapidAPI Key
+`backend/.env`
 ```
 RAPID_API_KEY=YOUR_KEY
 RAPID_API_HOST=jsearch.p.rapidapi.com
 ```
 This file is ignored by Git—update it whenever you rotate credentials.
 
+####
+Obtaining a RapidAPI JSearch API Key
+
+Visit the RapidAPI website:https://rapidapi.com
+
+Search for JSearch (Job Search API). Copy your API Key from the RapidAPI dashboard. Paste the key into backend/.env.
 
 ### Option A – Docker Compose
 
@@ -146,3 +153,5 @@ http://127.0.0.1:5173
 
 ![Results Page](plots/landing.png)
 
+### Job Card Page
+![Job Card](plots/landing.png)
