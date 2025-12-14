@@ -131,14 +131,18 @@ http://127.0.0.1:5173
 ## Application Preview
 
 ### Landing Page
+
 ![Landing Page](plots/LandingPage.png)
 
 ### Home Page
+
 ![Home Page](plots/HomePage.png)
 
 ### Search Page
+
 ![Search Page](plots/SearchPage.png)
 
 ### Results Page
-![Home Page](plots/landing.png)
+
+![Results Page](plots/landing.png)
 
