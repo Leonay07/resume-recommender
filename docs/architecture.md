@@ -22,6 +22,7 @@
 2. **Resume Parsing** – `ResumeParser` detects sections (skills/experience/education/projects/summary), extracts skills, and infers target roles.
 3. **Job Fetching** – `fetch_jobs_from_api` builds a “title in location” query, loops up to 3 pages, deduplicates `(title, company)`, and retains essential metadata.
 4. **Hybrid Scoring** – `recommend_jobs` calculates: 
+
    - skill overlap (40% weight),
    - TF–IDF similarity (25%),
    - role intent match (15%),
