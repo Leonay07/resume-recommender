@@ -1,48 +1,49 @@
-# Architecture & Execution Order
+# Architecture
 
 ## System Diagram
 ```
-[Frontend (Vite/React)] --HTTP--> [FastAPI Backend]
-      ↑                                  ↓
-  (Resume upload)           [ResumeParser / NLP Scorer]
-                                    ↓
-                           [JSearch API via job_fetcher]
-                                    ↓
-                              [cache.json pagination]
+[Vite Frontend]  <--HTTP-->  [FastAPI Backend]
+     |                            |
+     | upload + form data         |  parse resume + fetch jobs
+     |                            v
+     |                       [ResumeParser]
+     |                            |
+     |                       [Hybrid Scorer] <-- [Job Fetcher -> RapidAPI JSearch]
+     |                            |
+     -----------> [cache.json pagination]
 ```
-- **Frontend**: Landing/Search/Result/JobDetail pages call `/jobs/random`, `/jobs/search`, `/match`, `/match/more` via `fetch`.
-- **Backend**: `app.py` manages routing, file storage, caching, and static assets; `job_fetcher` wraps RapidAPI requests/deduping; `nlp_model` houses the skill dictionary, parser, and recommender.
-- **Data layer**: No persistent database—RapidAPI provides live data while `cache.json` stores temporary results. API keys are injected via `.env` during deployment.
+- **Frontend** renders React routes, posts multipart forms, and fetches `/jobs/random`, `/jobs/search`, `/match`, `/match/more`.
+- **Backend** (`backend/app.py`) manages uploads, temporary storage, static assets, and caches recommendations. It calls `job_fetcher.py` for RapidAPI requests and `nlp_model_stub.py` for scoring.
+- **NLP Layer** leverages `nlp_model/resume_parser.py`, `skills_dict.py`, `extract_job_skills_from_list.py`, and `tfidf_matcher.py`.
+- **Data Layer** relies on live RapidAPI responses; the only on-disk artifacts are transient temp files and `cache.json`. Configuration comes from `backend/.env` or environment variables.
 
-## Module Dependency Chain
-From `00_development_sequence.md`:
-1. Initialize repo and dependencies to stabilize the folder structure.
-2. Design frontend layout/navigation (`02_frontend_layout_structure.md`).
-3. Build the FastAPI skeleton (`03_backend_api_skeleton_v4.md`).
-4. Extend `job_fetcher` to bridge backend and NLP (module “07”).
-5. Define the NLP interface inside `nlp_model_stub` so the NLP team can implement real logic.
-6. Run frontend/backend integration tests covering upload forms, CORS, caching (`05_frontend_backend_integration_v3.md`).
-7. Package everything with `06_docker_deployment_guide.md` and deploy to Hugging Face.
+## Runtime Flow
+1. **Upload** – the frontend sends a multipart request to `/match` containing the resume file and form inputs.
+2. **Resume Parsing** – `ResumeParser` detects sections (skills/experience/education/projects/summary), extracts skills, and infers target roles.
+3. **Job Fetching** – `fetch_jobs_from_api` builds a “title in location” query, loops up to 3 pages, deduplicates `(title, company)`, and retains essential metadata.
+4. **Hybrid Scoring** – `recommend_jobs` calculates:
+   - skill overlap (40% weight),
+   - TF–IDF similarity (25%),
+   - role intent match (15%),
+   - experience alignment (10%),
+   - location match or remote allowance (10%).
+   It returns scores, summaries, keyword highlights, and apply links.
+5. **Caching** – results persist in `cache.json` so `/match/more` can stream the remainder without recomputing.
+6. **Explainability & Logging** – debug logs print per-job scores, and when `MLFLOW_TRACKING_URI` is set, metrics are pushed to MLflow.
 
 ## Key Design Choices
-- **Secure uploads**: use `tempfile.NamedTemporaryFile` and delete files after parsing to avoid disk residue.
-- **Job refetching**: `job_fetcher` iterates up to `MAX_PAGES` and deduplicates on `(title, company)` to maintain variety.
-- **Parsing strategy**: ResumeParser supports pdfplumber/python-docx, detects sections via multi-level keywords, and shares the skill dictionary across resumes/JDs.
-- **Recommendation logic**: five weighted factors (skills 40% + TF–IDF 25% + intent 15% + experience 10% + location 10%) with human-readable summaries.
-- **Caching/pagination**: persist recommendations to `cache.json` so `/match/more` can serve additional pages without recomputation.
-- **Microservices**: `docker-compose.yml` orchestrates three containers—frontend, backend, and MLflow—so each concern can scale independently.
-- **Experiment tracking**: the backend logs lightweight metrics (jobs fetched, average scores, intent roles) to MLflow; the Compose stack exposes the UI on port 5000.
+- **Secure uploads** – use `tempfile.NamedTemporaryFile` and delete files immediately after parsing.
+- **Graceful fallbacks** – optional location/experience fields default to empty strings; parser falls back to “other” section when headers are missing.
+- **JSearch filtering** – rely on RapidAPI’s filtering to avoid brittle client-side substring checks; only deduplicate and cap the number of results.
+- **Explainable output** – each recommendation includes a short summary (skills match %, location match, etc.) plus the top overlapping skills (`keywords`).
+- **Microservices readiness** – Compose separates front/back-end and MLflow so each service can scale or be replaced independently.
+- **Deployment parity** – the root `Dockerfile` mirrors the backend container used in Compose, ensuring Hugging Face behaves the same as local builds.
 
-## Dependency Table
-| Order | Module | Inputs | Outputs |
-|-------|--------|--------|---------|
-| 1 | 01 Initialization | Environment + scaffolding | `frontend/`, `backend/` layout |
-| 2 | 02 Frontend Layout | Wireframes | Landing/Search/Result page skeletons |
-| 3 | 03 Backend API | FastAPI | `jobs/*`, `match` endpoints |
-| 4 | 07 Backend⇄NLP | Module 03 | `job_fetcher` + model pipeline |
-| 5 | 05 Model Stub | Module 07 | `recommend_jobs` contract |
-| 6 | 04 FE-BE Integration | 02 + 03 + 05 | Integration artifacts, API docs |
-| 7 | 06 Deployment Guide | All modules | Dockerfile, HF deployment steps |
+## Testing & Observability
+- `tests/test_resume_parser.py` validates section parsing and skill extraction.
+- `tests/test_recommend_jobs.py` ensures skill-aligned jobs outrank unrelated ones and that the recommender returns complete metadata.
+- Logging is centralized via `logging.basicConfig` in `backend/app.py`; `job_fetcher.py` and `nlp_model_stub.py` emit informational statements for debugging RapidAPI queries and scoring breakdowns.
+- MLflow logging can be toggled by setting `MLFLOW_TRACKING_URI` (Compose does this automatically).
 
 ## Test Checklist
 - Job API: inspect `DEBUG` logs and ensure at least 10 results after deduping.

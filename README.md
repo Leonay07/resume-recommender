@@ -2,7 +2,7 @@
 
 **Team:** Liming Ye· Yuang Li· Yiran Tao· Renke Deng· Siyu Hu
 **Live Demo:** https://huggingface.co/spaces/yl1853/dsan6700_group8
-**Documentation:** TODO – link to deployed MkDocs site (or mention `mkdocs serve`)
+**Documentation:** https://leonay07.github.io/resume-recommender/
 
 ---
 

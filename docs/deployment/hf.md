@@ -1,7 +1,5 @@
 # Hugging Face Spaces Deployment
 
-Based on `06_docker_deployment_guide.md`.
-
 ## Goals
 - Build frontend and backend with a single multi-stage Dockerfile.
 - Run the resulting image on Hugging Face Spaces (Docker runtime).

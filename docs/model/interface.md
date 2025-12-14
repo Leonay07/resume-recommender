@@ -1,7 +1,5 @@
 # NLP Model Interface
 
-Unified spec based on `04_model_interface_stub.md` and `model_requirements_v5.md`.
-
 ## Core Function
 ```python
 def recommend_jobs(
@@ -55,6 +53,5 @@ Return an array sorted by score descending, shaped like:
 - Add unit tests for “No preference” experience, remote roles, and state abbreviations.
 - Return an empty list (not an exception) when `job_list` is empty.
 
-## Future Enhancements
-- Hook into MLflow/DVC to log experiment parameters and outcomes.
-- Populate `evidence_image` with skill word clouds or highlighted snippets for stronger explainability.
+## Logging & Telemetry
+When `MLFLOW_TRACKING_URI` is set, `recommend_jobs` automatically sends lightweight metrics (jobs fetched/returned, average score, query context) to MLflow via REST. This is optional and primarily used in the Docker Compose stack, but it can be pointed to any tracking server.
