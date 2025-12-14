@@ -32,7 +32,29 @@ RAPID_API_HOST=jsearch.p.rapidapi.com
 ```
 This file is ignored by Git—update it whenever you rotate credentials.
 
-### Option A – Local Development
+
+### Option A – Docker Compose
+
+```bash
+docker compose up --build
+```
+
+Once started, the following services will be available:
+
+| Service  | URL               | Notes                                  |
+|----------|-------------------|----------------------------------------|
+| frontend | http://localhost:5173 | Vite build served via `serve`.           |
+| backend  | http://localhost:8000 | FastAPI API + static assets.            |
+| mlflow   | http://localhost:5500 | Tracks metrics when `MLFLOW_TRACKING_URI` is set. |
+
+To stop and clean up all containers:
+
+```bash
+docker compose down
+
+```
+
+### Option B – Local Development
 
 Run the project locally using a standard backend + frontend setup.
 
@@ -70,38 +92,6 @@ npm run dev
 
 The UI will be served at:  
 http://127.0.0.1:5173
-
-
-### Option B – Docker Compose (local demo)
-
-```bash
-docker compose up --build
-```
-
-Open:
-- Frontend → http://127.0.0.1:5173
-- Backend docs → http://127.0.0.1:8000/docs
-- MLflow (optional) → http://127.0.0.1:5500
-
-Shut everything down with `docker compose down`.
-
----
-
-## Docker & Microservices
-
-### Docker Compose (frontend + backend + MLflow)
-
-```bash
-docker compose up --build
-```
-
-| Service  | URL               | Notes                                  |
-|----------|-------------------|----------------------------------------|
-| frontend | http://localhost:5173 | Vite build served via `serve`.           |
-| backend  | http://localhost:8000 | FastAPI API + static assets.            |
-| mlflow   | http://localhost:5500 | Tracks metrics when `MLFLOW_TRACKING_URI` is set. |
-
-Compose uses the same codebase as production, with `MLFLOW_TRACKING_URI=http://mlflow:5000`.
 
 ---
 
