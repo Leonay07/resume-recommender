@@ -634,16 +634,16 @@
 <p><strong>Hybrid Scoring</strong> – <code>recommend_jobs</code> calculates: </p>
 </li>
 <li>
-<p>skill overlap (40% weight),</p>
+<p>skill overlap (40% weight), </p>
 </li>
-<li>TF–IDF similarity (25%),</li>
-<li>role intent match (15%),</li>
-<li>experience alignment (10%),</li>
-<li>location match or remote allowance (10%).
-   It returns scores, summaries, keyword highlights, and apply links.</li>
-<li><strong>Caching</strong> – results persist in <code>cache.json</code> so <code>/match/more</code> can stream the remainder without recomputing.</li>
-<li><strong>Explainability &amp; Logging</strong> – debug logs print per-job scores, and when <code>MLFLOW_TRACKING_URI</code> is set, metrics are pushed to MLflow.</li>
+<li>TF–IDF similarity (25%), </li>
+<li>role intent match (15%), </li>
+<li>experience alignment (10%), </li>
+<li>location match or remote allowance (10%). </li>
 </ol>
+<p>It returns scores, summaries, keyword highlights, and apply links.
+5. <strong>Caching</strong> – results persist in <code>cache.json</code> so <code>/match/more</code> can stream the remainder without recomputing.
+6. <strong>Explainability &amp; Logging</strong> – debug logs print per-job scores, and when <code>MLFLOW_TRACKING_URI</code> is set, metrics are pushed to MLflow.</p>
 <h2 id="key-design-choices">Key Design Choices</h2>
 <ul>
 <li><strong>Secure uploads</strong> – use <code>tempfile.NamedTemporaryFile</code> and delete files immediately after parsing.</li>
