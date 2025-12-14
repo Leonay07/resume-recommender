@@ -2,7 +2,7 @@
 
 **Team:** Liming Ye· Yuang Li· Yiran Tao· Renke Deng· Siyu Hu
 
-**Live Demo:** https://huggingface.co/spaces/yl1853/dsan6700_group8
+**Public WebSite:** https://huggingface.co/spaces/yl1853/dsan6700_group8
 
 **Documentation:** https://leonay07.github.io/resume-recommender/
 
@@ -10,7 +10,7 @@
 
 ## Overview
 
-Resume Recommender ingests a user’s PDF/DOCX resume, fetches fresh job listings from RapidAPI’s JSearch feed, and ranks them with a hybrid scoring model (skills overlap, TF–IDF similarity, intent, experience, location). The stack comprises:
+This project ingests a user’s PDF/DOCX resume, fetches fresh job listings from RapidAPI’s JSearch feed, and ranks them with a hybrid scoring model (skills overlap, TF–IDF similarity, intent, experience, location). The stack comprises:
 
 - **Frontend:** React + Vite + TypeScript with routed pages (Landing, Search, Result, Job Detail). API endpoints are configurable via `VITE_API_BASE_URL`.
 - **Backend:** FastAPI service handling file uploads, resume parsing (pdfplumber + python-docx), RapidAPI calls, hybrid recommender, caching for “Load More,” and optional MLflow experiment logging.
