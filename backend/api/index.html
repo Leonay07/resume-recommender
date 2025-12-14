@@ -310,17 +310,6 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#service-entry-point" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Service Entry Point
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#route-overview" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -393,21 +382,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#job_fetcher-logic" class="md-nav__link">
+  <a href="#implementation-notes" class="md-nav__link">
     <span class="md-ellipsis">
       
-        job_fetcher Logic
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#caching-strategy" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Caching Strategy
+        Implementation Notes
       
     </span>
   </a>
@@ -597,17 +575,6 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#service-entry-point" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Service Entry Point
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#route-overview" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -680,21 +647,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#job_fetcher-logic" class="md-nav__link">
+  <a href="#implementation-notes" class="md-nav__link">
     <span class="md-ellipsis">
       
-        job_fetcher Logic
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#caching-strategy" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Caching Strategy
+        Implementation Notes
       
     </span>
   </a>
@@ -730,12 +686,13 @@
 
 
 <h1 id="backend-api-specification">Backend API Specification</h1>
-<p>Summarized from <code>03_backend_api_skeleton_v4.md</code>.</p>
-<h2 id="service-entry-point">Service Entry Point</h2>
-<ul>
-<li><code>uvicorn app:app --host 0.0.0.0 --port 7860</code></li>
-<li><code>backend/.env</code> must define <code>RAPID_API_KEY</code> and <code>RAPID_API_HOST</code></li>
-</ul>
+<p>The FastAPI app is defined in <code>backend/app.py</code> and exposes four public routes. The service entry point (used by Docker/HF) is:</p>
+<pre><code>uvicorn backend.app:app --host 0.0.0.0 --port 7860
+</code></pre>
+<p><code>backend/.env</code> (or environment variables) must include:</p>
+<pre><code>RAPID_API_KEY=...
+RAPID_API_HOST=jsearch.p.rapidapi.com
+</code></pre>
 <h2 id="route-overview">Route Overview</h2>
 <table>
 <thead>
@@ -770,29 +727,28 @@
 </table>
 <h3 id="jobsrandom"><code>/jobs/random</code></h3>
 <ul>
-<li>Input: none</li>
-<li>Output: <code>{"results": [JobItem]}</code> where each item contains <code>title/company/location/description/apply_link</code></li>
-<li>Logic: pick a predefined job title/location pair, call RapidAPI, and sample 10 entries.</li>
+<li><strong>Input:</strong> none</li>
+<li><strong>Output:</strong> <code>{"results": [JobItem]}</code> with <code>title</code>, <code>company</code>, <code>location</code>, <code>description</code>, <code>apply_link</code>.</li>
+<li><strong>Logic:</strong> fetch “Data Scientist” jobs via RapidAPI and return a random sample of up to 10 entries.</li>
 </ul>
 <h3 id="jobssearch"><code>/jobs/search</code></h3>
-<p>Query params:
-- <code>title</code> (str)
-- <code>location</code> (str)</p>
-<p>Flow:
-1. Build <code>query = f"{title} in {location}"</code>.
-2. Iterate up to <code>MAX_PAGES</code>, deduplicating on <code>(title, company)</code>.
-3. Continue paging until at least <code>MIN_RESULTS</code> remain.</p>
+<ul>
+<li><strong>Query params:</strong> <code>title</code>, <code>location</code> (may be empty strings).</li>
+<li><strong>Flow:</strong> construct <code>f"{title} in {location}"</code>, fetch up to <code>MAX_PAGES=3</code>, deduplicate <code>(title, company)</code>, and return the first <code>MIN_RESULTS</code> matches.</li>
+</ul>
 <h3 id="match"><code>/match</code></h3>
-<p>Multipart form fields: <code>file</code> (UploadFile), <code>title</code>, <code>location</code>, <code>experience</code>.</p>
-<p>Steps:
-1. Save the upload to a temp file and parse it with <code>ResumeParser</code>.
-2. Call <code>fetch_jobs_from_api</code> to retrieve job listings.
-3. Invoke <code>recommend_jobs</code> (nlp_model_stub) to compute the five scores.
-4. Persist full results to <code>cache.json</code> and return <code>results[:10]</code>.</p>
+<ul>
+<li><strong>Fields (multipart):</strong> <code>file</code> (UploadFile), <code>title</code>, <code>location</code> (optional), <code>experience</code> (optional).</li>
+<li><strong>Flow:</strong></li>
+<li>Store the file in a temp path and parse it via <code>ResumeParser</code>.</li>
+<li>Fetch jobs for the given title/location.</li>
+<li>Run <code>recommend_jobs</code> to score jobs and produce summaries.</li>
+<li>Cache the full list to <code>cache.json</code> and return the top 10.</li>
+</ul>
 <h3 id="matchmore"><code>/match/more</code></h3>
 <ul>
-<li>Input: none (current version returns the entire cache; <code>offset/limit</code> can be added later).</li>
-<li>Output: the cached list from the last <code>/match</code> call, or an empty list when cache is missing.</li>
+<li><strong>Input:</strong> none.</li>
+<li><strong>Output:</strong> entire cache from the last <code>/match</code> call; empty list if cache is missing or unreadable.</li>
 </ul>
 <h2 id="data-contract">Data Contract</h2>
 <pre><code class="language-json">{
@@ -811,26 +767,18 @@
   }
 }
 </code></pre>
-<h2 id="job_fetcher-logic">job_fetcher Logic</h2>
+<h2 id="implementation-notes">Implementation Notes</h2>
 <ul>
-<li><code>MIN_RESULTS=10</code>, <code>MAX_PAGES=3</code>.</li>
-<li>Reads RapidAPI credentials from <code>.env</code>.</li>
-<li>Deduplicates using <code>seen_keys</code> to avoid repeated <code>(title, company)</code> pairs.</li>
-<li><code>fetch_random_jobs</code> defaults to “Data Scientist” and samples 10 entries.</li>
-</ul>
-<h2 id="caching-strategy">Caching Strategy</h2>
-<ul>
-<li>File path: <code>backend/cache.json</code></li>
-<li>Write: overwrite in <code>/match</code> after computing scores.</li>
-<li>Read: <code>/match/more</code></li>
-<li>Failure guard: return <code>{"results": []}</code> when parsing fails or file is missing.</li>
+<li><code>job_fetcher.py</code> handles pagination, deduplication, and random sampling (for <code>/jobs/random</code>). RapidAPI credentials are loaded via <code>python-dotenv</code>.</li>
+<li><code>cache.json</code> lives in <code>backend/</code> (the same directory as <code>app.py</code>). The API uses <code>pathlib</code> to ensure the file is resolved correctly whether running locally or inside Docker.</li>
+<li>CORS is configured to allow all origins since Hugging Face serves the frontend and backend from different domains during development.</li>
 </ul>
 <h2 id="testing-tips">Testing Tips</h2>
 <ol>
-<li>Mock RapidAPI responses to verify deduplication.</li>
-<li>Use sample resumes to check the shape of <code>recommend_jobs</code> outputs.</li>
-<li>Hit <code>/match/more</code> multiple times to confirm cache reuse.</li>
-<li>Run <code>curl</code> inside Docker to validate CORS and multipart handling.</li>
+<li>Mock RapidAPI responses to verify deduplication and job field normalization.</li>
+<li>Use synthetic resumes to ensure <code>recommend_jobs</code> returns skills, summaries, and keywords.</li>
+<li>Exercise <code>/match/more</code> after multiple <code>/match</code> calls to confirm caching works.</li>
+<li>In Docker, run <code>curl -F "file=@resume.pdf" -F "title=..." http://localhost:7860/match</code> to validate multipart uploads end-to-end.</li>
 </ol>
 
 

@@ -276,10 +276,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#workflow" class="md-nav__link">
+  <a href="#end-to-end-workflow" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Workflow
+        End-to-End Workflow
       
     </span>
   </a>
@@ -287,21 +287,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#module-dependency-order" class="md-nav__link">
+  <a href="#development-deployment-paths" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Module Dependency Order
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#grading-focus" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Grading Focus
+        Development &amp; Deployment Paths
       
     </span>
   </a>
@@ -556,10 +545,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#workflow" class="md-nav__link">
+  <a href="#end-to-end-workflow" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Workflow
+        End-to-End Workflow
       
     </span>
   </a>
@@ -567,21 +556,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#module-dependency-order" class="md-nav__link">
+  <a href="#development-deployment-paths" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Module Dependency Order
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#grading-focus" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Grading Focus
+        Development &amp; Deployment Paths
       
     </span>
   </a>
@@ -607,7 +585,7 @@
 
 <h1 id="project-overview">Project Overview</h1>
 <h2 id="goal">Goal</h2>
-<p>Resume Recommender lets a user upload a PDF/DOCX resume, fetches relevant jobs from RapidAPI’s JSearch feed, and returns explainable recommendations. The full stack is deployed on Hugging Face Spaces via Docker, packaging the React/Vite frontend together with the FastAPI backend for an end‑to‑end demo.</p>
+<p>Resume Recommender helps job seekers discover relevant roles by comparing their resume against live job listings. Users upload a PDF/DOCX resume, specify optional search preferences, and receive explainable recommendations. The project delivers an end‑to‑end demo deployed on Hugging Face Spaces and a microservice stack runnable via Docker Compose.</p>
 <h2 id="system-components">System Components</h2>
 <table>
 <thead>
@@ -621,41 +599,39 @@
 <tr>
 <td>Frontend</td>
 <td>React + Vite + TypeScript</td>
-<td>Handles resume upload, job search, and result presentation</td>
+<td>Routes across Landing/Search/Result/Job pages, submits forms, and renders explanations.</td>
 </tr>
 <tr>
 <td>Backend</td>
 <td>FastAPI + python-multipart</td>
-<td>Orchestrates job fetching, resume parsing, recommendation scoring, and caching</td>
+<td>Handles file uploads, RapidAPI requests, resume parsing, scoring, caching, and static assets.</td>
 </tr>
 <tr>
 <td>NLP</td>
 <td>ResumeParser + TF–IDF + heuristic engine</td>
-<td>Extracts skills/intent and calculates five scoring dimensions</td>
+<td>Extracts skills/intent and scores jobs across five weighted dimensions.</td>
 </tr>
 <tr>
-<td>Deployment</td>
-<td>Docker + Hugging Face Spaces</td>
-<td>Multi-stage build that bundles static assets and exposes port 7860</td>
+<td>Experiment Tracking</td>
+<td>MLflow (optional)</td>
+<td>Logs query metadata and scores when <code>MLFLOW_TRACKING_URI</code> is configured.</td>
 </tr>
 </tbody>
 </table>
-<h2 id="workflow">Workflow</h2>
+<h2 id="end-to-end-workflow">End-to-End Workflow</h2>
 <ol>
-<li>The user uploads a resume and enters title/location/experience preferences in the frontend.</li>
-<li>FastAPI stores the file temporarily and lets ResumeParser extract plain text plus skills.</li>
-<li><code>job_fetcher</code> queries the JSearch API, deduplicates <code>(title, company)</code>, and fills the job list.</li>
-<li>The NLP layer combines skill overlap, TF–IDF similarity, role intent, experience, and location scoring.</li>
-<li>Results are written to <code>cache.json</code>; the frontend renders the top 10 and can request “Load More”.</li>
+<li><strong>Upload &amp; Preferences</strong> – the user uploads a PDF/DOCX resume and optionally sets title, location, and experience preferences.</li>
+<li><strong>Resume Parsing</strong> – FastAPI writes the file to a temp path and <code>ResumeParser</code> extracts text, sections, skills, and inferred intent.</li>
+<li><strong>Job Fetching</strong> – <code>job_fetcher</code> calls RapidAPI’s JSearch endpoint, paginates up to three pages, deduplicates <code>(title, company)</code>, and returns descriptions with apply links.</li>
+<li><strong>Hybrid Scoring</strong> – <code>nlp_model_stub.recommend_jobs</code> combines skill overlap, TF–IDF similarity, role intent, experience alignment, and location match to produce weighted scores and human-readable summaries.</li>
+<li><strong>Caching &amp; Pagination</strong> – the ranked list is cached in <code>backend/cache.json</code>; <code>/match</code> returns the top 10 while <code>/match/more</code> streams the remainder to the frontend.</li>
+<li><strong>Visualization</strong> – React/Vite displays job cards, highlights overlapping skills, and surfaces apply links. Requests can be re-run with different parameters without restarting the API.</li>
 </ol>
-<h2 id="module-dependency-order">Module Dependency Order</h2>
-<p>01 Initialization → 02 Frontend Layout → 03 Backend Skeleton → 07 Job Fetching → 05 Model Interface → 04 Frontend/Backend Integration → 06 Docker Deployment. This sequence mirrors the team planning documents so every downstream stage receives usable upstream artifacts.</p>
-<h2 id="grading-focus">Grading Focus</h2>
+<h2 id="development-deployment-paths">Development &amp; Deployment Paths</h2>
 <ul>
-<li><strong>Reproducible</strong>: scripts, Docker build, and cloud deployment must run as documented.</li>
-<li><strong>End-to-end</strong>: real API data flows through resume parsing and the recommendation model.</li>
-<li><strong>Engineering</strong>: modular layout, logging, and caching strategies keep the system extensible.</li>
-<li><strong>Demo-ready</strong>: documentation, scripts, and demo flow let the TA verify functionality quickly.</li>
+<li><strong>Local development</strong> uses Poetry + npm for rapid iteration; <code>setup_local.sh</code> installs both environments.</li>
+<li><strong>Containerized demo</strong> uses Docker Compose (frontend + backend + MLflow) or the single Dockerfile for Hugging Face.</li>
+<li><strong>Documentation &amp; CI</strong>: MkDocs provides this documentation site; GitHub Actions (<code>ci.yml</code> + <code>docs.yml</code>) run lint/tests and deploy docs to <code>gh-pages</code>.</li>
 </ul>
 
 

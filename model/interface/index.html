@@ -403,10 +403,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#future-enhancements" class="md-nav__link">
+  <a href="#logging-telemetry" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Future Enhancements
+        Logging &amp; Telemetry
       
     </span>
   </a>
@@ -624,10 +624,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#future-enhancements" class="md-nav__link">
+  <a href="#logging-telemetry" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Future Enhancements
+        Logging &amp; Telemetry
       
     </span>
   </a>
@@ -652,7 +652,6 @@
 
 
 <h1 id="nlp-model-interface">NLP Model Interface</h1>
-<p>Unified spec based on <code>04_model_interface_stub.md</code> and <code>model_requirements_v5.md</code>.</p>
 <h2 id="core-function">Core Function</h2>
 <pre><code class="language-python">def recommend_jobs(
     resume_text: str,
@@ -708,11 +707,8 @@
 <li>Add unit tests for “No preference” experience, remote roles, and state abbreviations.</li>
 <li>Return an empty list (not an exception) when <code>job_list</code> is empty.</li>
 </ul>
-<h2 id="future-enhancements">Future Enhancements</h2>
-<ul>
-<li>Hook into MLflow/DVC to log experiment parameters and outcomes.</li>
-<li>Populate <code>evidence_image</code> with skill word clouds or highlighted snippets for stronger explainability.</li>
-</ul>
+<h2 id="logging-telemetry">Logging &amp; Telemetry</h2>
+<p>When <code>MLFLOW_TRACKING_URI</code> is set, <code>recommend_jobs</code> automatically sends lightweight metrics (jobs fetched/returned, average score, query context) to MLflow via REST. This is optional and primarily used in the Docker Compose stack, but it can be pointed to any tracking server.</p>
 
 
 

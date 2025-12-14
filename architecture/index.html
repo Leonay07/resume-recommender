@@ -64,7 +64,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#architecture-execution-order" class="md-skip">
+        <a href="#architecture" class="md-skip">
           Skip to content
         </a>
       
@@ -294,10 +294,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#module-dependency-chain" class="md-nav__link">
+  <a href="#runtime-flow" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Module Dependency Chain
+        Runtime Flow
       
     </span>
   </a>
@@ -316,10 +316,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#dependency-table" class="md-nav__link">
+  <a href="#testing-observability" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Dependency Table
+        Testing &amp; Observability
       
     </span>
   </a>
@@ -547,10 +547,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#module-dependency-chain" class="md-nav__link">
+  <a href="#runtime-flow" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Module Dependency Chain
+        Runtime Flow
       
     </span>
   </a>
@@ -569,10 +569,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#dependency-table" class="md-nav__link">
+  <a href="#testing-observability" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Dependency Table
+        Testing &amp; Observability
       
     </span>
   </a>
@@ -607,95 +607,55 @@
 
 
 
-<h1 id="architecture-execution-order">Architecture &amp; Execution Order</h1>
+<h1 id="architecture">Architecture</h1>
 <h2 id="system-diagram">System Diagram</h2>
-<pre><code>[Frontend (Vite/React)] --HTTP--&gt; [FastAPI Backend]
-      ↑                                  ↓
-  (Resume upload)           [ResumeParser / NLP Scorer]
-                                    ↓
-                           [JSearch API via job_fetcher]
-                                    ↓
-                              [cache.json pagination]
+<pre><code>[Vite Frontend]  &lt;--HTTP--&gt;  [FastAPI Backend]
+     |                            |
+     | upload + form data         |  parse resume + fetch jobs
+     |                            v
+     |                       [ResumeParser]
+     |                            |
+     |                       [Hybrid Scorer] &lt;-- [Job Fetcher -&gt; RapidAPI JSearch]
+     |                            |
+     -----------&gt; [cache.json pagination]
 </code></pre>
 <ul>
-<li><strong>Frontend</strong>: Landing/Search/Result/JobDetail pages call <code>/jobs/random</code>, <code>/jobs/search</code>, <code>/match</code>, <code>/match/more</code> via <code>fetch</code>.</li>
-<li><strong>Backend</strong>: <code>app.py</code> manages routing, file storage, caching, and static assets; <code>job_fetcher</code> wraps RapidAPI requests/deduping; <code>nlp_model</code> houses the skill dictionary, parser, and recommender.</li>
-<li><strong>Data layer</strong>: No persistent database—RapidAPI provides live data while <code>cache.json</code> stores temporary results. API keys are injected via <code>.env</code> during deployment.</li>
+<li><strong>Frontend</strong> renders React routes, posts multipart forms, and fetches <code>/jobs/random</code>, <code>/jobs/search</code>, <code>/match</code>, <code>/match/more</code>.</li>
+<li><strong>Backend</strong> (<code>backend/app.py</code>) manages uploads, temporary storage, static assets, and caches recommendations. It calls <code>job_fetcher.py</code> for RapidAPI requests and <code>nlp_model_stub.py</code> for scoring.</li>
+<li><strong>NLP Layer</strong> leverages <code>nlp_model/resume_parser.py</code>, <code>skills_dict.py</code>, <code>extract_job_skills_from_list.py</code>, and <code>tfidf_matcher.py</code>.</li>
+<li><strong>Data Layer</strong> relies on live RapidAPI responses; the only on-disk artifacts are transient temp files and <code>cache.json</code>. Configuration comes from <code>backend/.env</code> or environment variables.</li>
 </ul>
-<h2 id="module-dependency-chain">Module Dependency Chain</h2>
-<p>From <code>00_development_sequence.md</code>:
-1. Initialize repo and dependencies to stabilize the folder structure.
-2. Design frontend layout/navigation (<code>02_frontend_layout_structure.md</code>).
-3. Build the FastAPI skeleton (<code>03_backend_api_skeleton_v4.md</code>).
-4. Extend <code>job_fetcher</code> to bridge backend and NLP (module “07”).
-5. Define the NLP interface inside <code>nlp_model_stub</code> so the NLP team can implement real logic.
-6. Run frontend/backend integration tests covering upload forms, CORS, caching (<code>05_frontend_backend_integration_v3.md</code>).
-7. Package everything with <code>06_docker_deployment_guide.md</code> and deploy to Hugging Face.</p>
+<h2 id="runtime-flow">Runtime Flow</h2>
+<ol>
+<li><strong>Upload</strong> – the frontend sends a multipart request to <code>/match</code> containing the resume file and form inputs.</li>
+<li><strong>Resume Parsing</strong> – <code>ResumeParser</code> detects sections (skills/experience/education/projects/summary), extracts skills, and infers target roles.</li>
+<li><strong>Job Fetching</strong> – <code>fetch_jobs_from_api</code> builds a “title in location” query, loops up to 3 pages, deduplicates <code>(title, company)</code>, and retains essential metadata.</li>
+<li><strong>Hybrid Scoring</strong> – <code>recommend_jobs</code> calculates:</li>
+<li>skill overlap (40% weight),</li>
+<li>TF–IDF similarity (25%),</li>
+<li>role intent match (15%),</li>
+<li>experience alignment (10%),</li>
+<li>location match or remote allowance (10%).
+   It returns scores, summaries, keyword highlights, and apply links.</li>
+<li><strong>Caching</strong> – results persist in <code>cache.json</code> so <code>/match/more</code> can stream the remainder without recomputing.</li>
+<li><strong>Explainability &amp; Logging</strong> – debug logs print per-job scores, and when <code>MLFLOW_TRACKING_URI</code> is set, metrics are pushed to MLflow.</li>
+</ol>
 <h2 id="key-design-choices">Key Design Choices</h2>
 <ul>
-<li><strong>Secure uploads</strong>: use <code>tempfile.NamedTemporaryFile</code> and delete files after parsing to avoid disk residue.</li>
-<li><strong>Job refetching</strong>: <code>job_fetcher</code> iterates up to <code>MAX_PAGES</code> and deduplicates on <code>(title, company)</code> to maintain variety.</li>
-<li><strong>Parsing strategy</strong>: ResumeParser supports pdfplumber/python-docx, detects sections via multi-level keywords, and shares the skill dictionary across resumes/JDs.</li>
-<li><strong>Recommendation logic</strong>: five weighted factors (skills 40% + TF–IDF 25% + intent 15% + experience 10% + location 10%) with human-readable summaries.</li>
-<li><strong>Caching/pagination</strong>: persist recommendations to <code>cache.json</code> so <code>/match/more</code> can serve additional pages without recomputation.</li>
-<li><strong>Microservices</strong>: <code>docker-compose.yml</code> orchestrates three containers—frontend, backend, and MLflow—so each concern can scale independently.</li>
-<li><strong>Experiment tracking</strong>: the backend logs lightweight metrics (jobs fetched, average scores, intent roles) to MLflow; the Compose stack exposes the UI on port 5000.</li>
+<li><strong>Secure uploads</strong> – use <code>tempfile.NamedTemporaryFile</code> and delete files immediately after parsing.</li>
+<li><strong>Graceful fallbacks</strong> – optional location/experience fields default to empty strings; parser falls back to “other” section when headers are missing.</li>
+<li><strong>JSearch filtering</strong> – rely on RapidAPI’s filtering to avoid brittle client-side substring checks; only deduplicate and cap the number of results.</li>
+<li><strong>Explainable output</strong> – each recommendation includes a short summary (skills match %, location match, etc.) plus the top overlapping skills (<code>keywords</code>).</li>
+<li><strong>Microservices readiness</strong> – Compose separates front/back-end and MLflow so each service can scale or be replaced independently.</li>
+<li><strong>Deployment parity</strong> – the root <code>Dockerfile</code> mirrors the backend container used in Compose, ensuring Hugging Face behaves the same as local builds.</li>
 </ul>
-<h2 id="dependency-table">Dependency Table</h2>
-<table>
-<thead>
-<tr>
-<th>Order</th>
-<th>Module</th>
-<th>Inputs</th>
-<th>Outputs</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>1</td>
-<td>01 Initialization</td>
-<td>Environment + scaffolding</td>
-<td><code>frontend/</code>, <code>backend/</code> layout</td>
-</tr>
-<tr>
-<td>2</td>
-<td>02 Frontend Layout</td>
-<td>Wireframes</td>
-<td>Landing/Search/Result page skeletons</td>
-</tr>
-<tr>
-<td>3</td>
-<td>03 Backend API</td>
-<td>FastAPI</td>
-<td><code>jobs/*</code>, <code>match</code> endpoints</td>
-</tr>
-<tr>
-<td>4</td>
-<td>07 Backend⇄NLP</td>
-<td>Module 03</td>
-<td><code>job_fetcher</code> + model pipeline</td>
-</tr>
-<tr>
-<td>5</td>
-<td>05 Model Stub</td>
-<td>Module 07</td>
-<td><code>recommend_jobs</code> contract</td>
-</tr>
-<tr>
-<td>6</td>
-<td>04 FE-BE Integration</td>
-<td>02 + 03 + 05</td>
-<td>Integration artifacts, API docs</td>
-</tr>
-<tr>
-<td>7</td>
-<td>06 Deployment Guide</td>
-<td>All modules</td>
-<td>Dockerfile, HF deployment steps</td>
-</tr>
-</tbody>
-</table>
+<h2 id="testing-observability">Testing &amp; Observability</h2>
+<ul>
+<li><code>tests/test_resume_parser.py</code> validates section parsing and skill extraction.</li>
+<li><code>tests/test_recommend_jobs.py</code> ensures skill-aligned jobs outrank unrelated ones and that the recommender returns complete metadata.</li>
+<li>Logging is centralized via <code>logging.basicConfig</code> in <code>backend/app.py</code>; <code>job_fetcher.py</code> and <code>nlp_model_stub.py</code> emit informational statements for debugging RapidAPI queries and scoring breakdowns.</li>
+<li>MLflow logging can be toggled by setting <code>MLFLOW_TRACKING_URI</code> (Compose does this automatically).</li>
+</ul>
 <h2 id="test-checklist">Test Checklist</h2>
 <ul>
 <li>Job API: inspect <code>DEBUG</code> logs and ensure at least 10 results after deduping.</li>
