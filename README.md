@@ -1,6 +1,7 @@
 # Job Recommendation System
 
 **Team:** Liming Ye · Yuang Li · Yiran Tao · Renke Deng · Siyu Hu  
+**Public WebSite:** https://huggingface.co/spaces/yl1853/dsan6700_group8
 **Documentation:** https://leonay07.github.io/resume-recommender/  
 **RapidAPI key location:** `backend/.env` (see setup below)
 
@@ -33,11 +34,43 @@ This file is ignored by Git—update it whenever you rotate credentials.
 
 ### Option A – Local Development
 
-| Step | Command | Notes |
-|------|---------|-------|
-| Install deps | `chmod +x setup_local.sh && ./setup_local.sh` | Installs Poetry env + frontend packages. |
-| Backend | `poetry run uvicorn backend.app:app --reload --port 8000` | API available at http://127.0.0.1:8000/docs |
-| Frontend | `cd frontend && VITE_API_BASE_URL=http://127.0.0.1:8000 npm run dev` | UI served at http://127.0.0.1:5173 |
+Run the project locally using a standard backend + frontend setup.
+
+#### 1. Install dependencies
+
+This script sets up the Python environment (Poetry) and installs frontend dependencies.
+
+```bash
+chmod +x setup_local.sh
+./setup_local.sh
+```
+
+#### 2. Start the backend (FastAPI)
+
+Run the API server with hot reload enabled.
+
+```bash
+poetry run uvicorn backend.app:app --reload --port 8000
+```
+
+Once started, it will be available at:  
+http://127.0.0.1:8000
+
+Note: This service is used only to run the backend logic and does not display a UI.  
+Please proceed to start the frontend and view the application in the frontend preview window.
+
+#### 3. Start the frontend 
+
+In a new terminal, start the frontend development server and point it to the local backend.
+
+```bash
+cd frontend
+npm run dev
+```
+
+The UI will be served at:  
+http://127.0.0.1:5173
+
 
 ### Option B – Docker Compose (local demo)
 

@@ -4,7 +4,8 @@ import logging
 import os
 import shutil
 import tempfile
-from typing import Annotated
+from pathlib import Path
+from typing import Annotated, Optional
 
 from fastapi import FastAPI, File, Form, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -16,6 +17,10 @@ from .nlp_model.resume_parser import ResumeParser
 from .nlp_model_stub import recommend_jobs
 
 UploadedResume = Annotated[UploadFile, File(...)]
+
+BASE_DIR = Path(__file__).resolve().parent
+CACHE_PATH = BASE_DIR / "cache.json"
+STATIC_DIR = BASE_DIR / "static"
 
 logging.basicConfig(
     level=logging.INFO,
@@ -32,8 +37,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-CACHE_PATH = "cache.json"
 
 @app.get("/jobs/random")
 def get_random_jobs():
@@ -53,15 +56,15 @@ def search_jobs(title: str, location: str):
 async def match_resume(
     file: UploadedResume,
     title: str = Form(...),
-    location: str = Form(...),
-    experience: str = Form(...),
+    location: Optional[str] = Form(None),
+    experience: Optional[str] = Form(None),
 ):
     """Match a resume to jobs and return scored recommendations."""
     logger.info(
         "Received match request title=%s, location=%s, experience=%s",
         title,
-        location,
-        experience,
+        location or "",
+        experience or "",
     )
     # --- Step 1: 安全处理文件上传 ---
     suffix = os.path.splitext(file.filename)[1]
@@ -83,13 +86,19 @@ async def match_resume(
             os.remove(tmp_path)
 
     # --- Step 3: 抓取职位 ---
-    job_list = fetch_jobs_from_api(title, location)
+    job_list = fetch_jobs_from_api(title, location or "")
 
     # --- Step 4: 五维打分 ---
-    results = recommend_jobs(resume_text, job_list, title, location, experience)
+    results = recommend_jobs(
+        resume_text,
+        job_list,
+        title,
+        location or "",
+        experience or "",
+    )
 
     # --- Step 5: 保存并返回 ---
-    with open(CACHE_PATH, "w") as f:
+    with CACHE_PATH.open("w", encoding="utf-8") as f:
         json.dump(results, f)
 
     logger.info("Returning %d recommendations", min(len(results), 10))
@@ -98,23 +107,24 @@ async def match_resume(
 @app.get("/match/more")
 def load_more_matches():
     """Return cached recommendations from the last match request."""
-    if not os.path.exists(CACHE_PATH):
+    if not CACHE_PATH.exists():
         logger.warning("Cache file not found when requesting /match/more.")
         return {"results": []}
     try:
-        with open(CACHE_PATH, "r") as f:
+        with CACHE_PATH.open("r", encoding="utf-8") as f:
             data = json.load(f)
     except Exception:
         logger.exception("Failed to load cache.json for /match/more.")
         return {"results": []}
     return {"results": data}
 
-if os.path.isdir("static"):
-    app.mount("/", StaticFiles(directory="static", html=True), name="static")
+if STATIC_DIR.is_dir():
+    app.mount("/", StaticFiles(directory=str(STATIC_DIR), html=True), name="static")
 
 @app.get("/")
 def serve_home():
     """Serve the built frontend if available."""
-    if os.path.exists("static/index.html"):
-        return FileResponse("static/index.html")
+    index_path = STATIC_DIR / "index.html"
+    if index_path.exists():
+        return FileResponse(str(index_path))
     return {"message": "Frontend not built."}
