@@ -630,16 +630,18 @@
 <li><strong>Upload</strong> – the frontend sends a multipart request to <code>/match</code> containing the resume file and form inputs.</li>
 <li><strong>Resume Parsing</strong> – <code>ResumeParser</code> detects sections (skills/experience/education/projects/summary), extracts skills, and infers target roles.</li>
 <li><strong>Job Fetching</strong> – <code>fetch_jobs_from_api</code> builds a “title in location” query, loops up to 3 pages, deduplicates <code>(title, company)</code>, and retains essential metadata.</li>
-<li><strong>Hybrid Scoring</strong> – <code>recommend_jobs</code> calculates:</li>
-<li>skill overlap (40% weight)</li>
+<li><strong>Hybrid Scoring</strong> – <code>recommend_jobs</code> computes a weighted score based on:</li>
+<li>Skill overlap (40%)</li>
 <li>TF–IDF similarity (25%)</li>
-<li>role intent match (15%)</li>
-<li>experience alignment (10%)</li>
-<li>location match or remote allowance (10%)</li>
+<li>Role intent match (15%)</li>
+<li>Experience alignment (10%)</li>
+<li>Location or remote allowance (10%)</li>
 </ol>
-<p>It returns scores, summaries, keyword highlights, and apply links.
-5. <strong>Caching</strong> – results persist in <code>cache.json</code> so <code>/match/more</code> can stream the remainder without recomputing.
-6. <strong>Explainability &amp; Logging</strong> – debug logs print per-job scores, and when <code>MLFLOW_TRACKING_URI</code> is set, metrics are pushed to MLflow.</p>
+<p><strong>Output:</strong> ranked scores, short summaries, keyword highlights, and direct apply links.</p>
+<ol>
+<li><strong>Caching</strong> – results persist in <code>cache.json</code> so <code>/match/more</code> can stream the remainder without recomputing.</li>
+<li><strong>Explainability &amp; Logging</strong> – debug logs print per-job scores, and when <code>MLFLOW_TRACKING_URI</code> is set, metrics are pushed to MLflow.</li>
+</ol>
 <h2 id="key-design-choices">Key Design Choices</h2>
 <ul>
 <li><strong>Secure uploads</strong> – use <code>tempfile.NamedTemporaryFile</code> and delete files immediately after parsing.</li>
