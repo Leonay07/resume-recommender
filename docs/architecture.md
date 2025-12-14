@@ -23,11 +23,12 @@
 3. **Job Fetching** – `fetch_jobs_from_api` builds a “title in location” query, loops up to 3 pages, deduplicates `(title, company)`, and retains essential metadata.
 4. **Hybrid Scoring** – `recommend_jobs` calculates: 
 
-   - skill overlap (40% weight),
-   - TF–IDF similarity (25%),
-   - role intent match (15%),
-   - experience alignment (10%),
-   - location match or remote allowance (10%).
+   - skill overlap (40% weight), 
+   - TF–IDF similarity (25%), 
+   - role intent match (15%), 
+   - experience alignment (10%), 
+   - location match or remote allowance (10%). 
+   
    It returns scores, summaries, keyword highlights, and apply links.
 5. **Caching** – results persist in `cache.json` so `/match/more` can stream the remainder without recomputing.
 6. **Explainability & Logging** – debug logs print per-job scores, and when `MLFLOW_TRACKING_URI` is set, metrics are pushed to MLflow.

@@ -1,4 +1,4 @@
-# NLP Model Interface
+# ML Model Interface
 
 ## Core Function
 ```python
