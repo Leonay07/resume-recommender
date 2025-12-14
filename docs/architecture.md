@@ -21,15 +21,10 @@
 1. **Upload** – the frontend sends a multipart request to `/match` containing the resume file and form inputs.
 2. **Resume Parsing** – `ResumeParser` detects sections (skills/experience/education/projects/summary), extracts skills, and infers target roles.
 3. **Job Fetching** – `fetch_jobs_from_api` builds a “title in location” query, loops up to 3 pages, deduplicates `(title, company)`, and retains essential metadata.
-4. **Hybrid Scoring** – `recommend_jobs` computes a weighted score based on:
-   - Skill overlap (40%)
-   - TF–IDF similarity (25%)
-   - Role intent match (15%)
-   - Experience alignment (10%)
-   - Location or remote allowance (10%)
-   **Output:** ranked scores, short summaries, keyword highlights, and direct apply links.
+4. **Hybrid Scoring** – `recommend_jobs` computes a weighted score by combining skill overlap (40%), TF–IDF similarity (25%), role intent match (15%), experience alignment (10%), and location or remote allowance (10%), producing ranked scores, short summaries, keyword highlights, and direct apply links.
 5. **Caching** – results persist in `cache.json` so `/match/more` can stream the remainder without recomputing.
 6. **Explainability & Logging** – debug logs print per-job scores, and when `MLFLOW_TRACKING_URI` is set, metrics are pushed to MLflow.
+
 
 
 ## Key Design Choices

@@ -1,10 +1,8 @@
 # Job Recommendation System
 
-**Team:** Liming Ye· Yuang Li· Yiran Tao· Renke Deng· Siyu Hu
-
-**Public WebSite:** https://huggingface.co/spaces/yl1853/dsan6700_group8
-
-**Documentation:** https://leonay07.github.io/resume-recommender/
+**Team:** Liming Ye · Yuang Li · Yiran Tao · Renke Deng · Siyu Hu  
+**Documentation:** https://leonay07.github.io/resume-recommender/  
+**RapidAPI key location:** `backend/.env` (see setup below)
 
 ---
 
@@ -24,35 +22,35 @@ This project input a user’s PDF/DOCX resume, fetches fresh job listings from R
 
 ## Quickstart
 
-Choose the path that fits your needs:
-- **Option A** if you plan to modify code, debug, or run tests locally.
-- **Option B** if you only need a containerized demo (Docker/Hugging Face).
+Pick whichever workflow you need. Both require a RapidAPI JSearch key stored in `backend/.env`.
 
-### Option A – Local Development (Poetry + npm)
+### Configure RapidAPI Key
+```
+RAPID_API_KEY=YOUR_KEY
+RAPID_API_HOST=jsearch.p.rapidapi.com
+```
+This file is ignored by Git—update it whenever you rotate credentials.
+
+### Option A – Local Development
 
 | Step | Command | Notes |
 |------|---------|-------|
 | Install deps | `chmod +x setup_local.sh && ./setup_local.sh` | Installs Poetry env + frontend packages. |
-| Backend dev server | `poetry run uvicorn backend.app:app --reload --port 8000` | FastAPI + live reload. |
-| Frontend dev server | `cd frontend && VITE_API_BASE_URL=http://localhost:8000 npm run dev` | Vite dev server hitting the backend. |
+| Backend | `poetry run uvicorn backend.app:app --reload --port 8000` | API available at http://127.0.0.1:8000/docs |
+| Frontend | `cd frontend && VITE_API_BASE_URL=http://127.0.0.1:8000 npm run dev` | UI served at http://127.0.0.1:5173 |
 
-Key endpoints:
-- `GET /jobs/random`
-- `GET /jobs/search?title=...&location=...`
-- `POST /match` (multipart form: file, title, optional location/experience)
-- `GET /match/more`
+### Option B – Docker Compose (local demo)
 
-### Option B – Docker / Compose (recommended for demo)
+```bash
+docker compose up --build
+```
 
-- **Single container** (used for Hugging Face):
-  ```bash
-  docker build -t resume-recommender .
-  docker run --rm -p 7860:7860 --env-file backend/.env resume-recommender
-  ```
-- **Microservice stack** (frontend + backend + MLflow):
-  ```bash
-  docker compose up --build
-  ```
+Open:
+- Frontend → http://127.0.0.1:5173
+- Backend docs → http://127.0.0.1:8000/docs
+- MLflow (optional) → http://127.0.0.1:5500
+
+Shut everything down with `docker compose down`.
 
 ---
 
@@ -71,20 +69,6 @@ docker compose up --build
 | mlflow   | http://localhost:5500 | Tracks metrics when `MLFLOW_TRACKING_URI` is set. |
 
 Compose uses the same codebase as production, with `MLFLOW_TRACKING_URI=http://mlflow:5000`.
-
-### Hugging Face Spaces Deployment
-
-1. Ensure `backend/.env` contains:
-   ```
-   RAPID_API_KEY=...
-   RAPID_API_HOST=jsearch.p.rapidapi.com
-   ```
-2. Run `poetry run ruff check .` and `poetry run pytest`.
-3. Build locally (optional): `docker build -t resume-recommender .`.
-4. Push the repo to a Docker Space (port 7860). Set Secrets `RAPID_API_KEY` and `RAPID_API_HOST`.
-5. The root `Dockerfile` builds frontend → backend/static, installs FastAPI deps, and runs `uvicorn backend.app:app --port 7860`.
-
-More details: `docs/deployment/hf.md` and `docs/deployment/compose.md`.
 
 ---
 
@@ -117,4 +101,3 @@ More details: `docs/deployment/hf.md` and `docs/deployment/compose.md`.
 | `discussion.pdf` | Final analysis report. |
 
 ---
-
