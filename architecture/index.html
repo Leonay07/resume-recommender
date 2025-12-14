@@ -635,10 +635,8 @@
 <li>TF–IDF similarity (25%)</li>
 <li>Role intent match (15%)</li>
 <li>Experience alignment (10%)</li>
-<li>Location or remote allowance (10%)</li>
-</ol>
-<p><strong>Output:</strong> ranked scores, short summaries, keyword highlights, and direct apply links.</p>
-<ol>
+<li>Location or remote allowance (10%)
+   <strong>Output:</strong> ranked scores, short summaries, keyword highlights, and direct apply links.</li>
 <li><strong>Caching</strong> – results persist in <code>cache.json</code> so <code>/match/more</code> can stream the remainder without recomputing.</li>
 <li><strong>Explainability &amp; Logging</strong> – debug logs print per-job scores, and when <code>MLFLOW_TRACKING_URI</code> is set, metrics are pushed to MLflow.</li>
 </ol>
